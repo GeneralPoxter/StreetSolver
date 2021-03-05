@@ -8,6 +8,8 @@ import (
 )
 
 func main() {
+	fileServer := http.FileServer(http.Dir("./public"))
+	http.Handle("/", fileServer)
 	http.HandleFunc("/map", mapHandler)
 	fmt.Println("Starting server at port 8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -24,7 +26,7 @@ func mapHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 	}
 
-	res, err := http.Get("https://maps.googleapis.com/maps/api/js?key=AIzaSyBIwzALxUPNbatRBj3Xi1Uhp0fFzwWNBkE&callback=initialize&libraries=&v=weekly")
+	res, err := http.Get("https://maps.googleapis.com/maps/api/js?key=AIzaSyBIwzALxUPNbatRBj3Xi1Uhp0fFzwWNBkE&callback=initMap")
 	if err != nil {
 		log.Fatalln(err)
 	}
