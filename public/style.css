@@ -5,8 +5,12 @@ body {
 	padding: 0;
 }
 
-#map {
-	height: 80%;
+#guessingMap {
+	height: 25%;
+	width: 25%;
+}
+#streetView {
+	height: 70%;
 }
 
 #title {
