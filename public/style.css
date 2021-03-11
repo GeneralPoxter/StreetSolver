@@ -4,13 +4,22 @@ body {
 	margin: 0;
 	padding: 0;
 }
-
+#maps{
+	height: 100%;
+	width: 100%;
+	top: 5%;
+}
 #guessingMap {
 	height: 25%;
 	width: 25%;
+	position: absolute;
+	top: 175px;
+	right: 75px;
+	z-index: 20;
 }
 #streetView {
-	height: 70%;
+	height: 85%;
+	z-index: 10;
 }
 
 #title {
