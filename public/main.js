@@ -22,9 +22,6 @@ window.initMap = function() {
 		mapTypeId: google.maps.MapTypeId.ROADMAP
 	});
 	console.log('Guessing Map loaded');
-
-	
-	
 };
 
 document.head.appendChild(script);
