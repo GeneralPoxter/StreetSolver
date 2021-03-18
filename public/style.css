@@ -1,14 +1,17 @@
 html,
 body {
-	height: 100%;
+	height: 100vh;
+	width: 100vw;
 	margin: 0;
 	padding: 0;
 }
-#maps{
-	height: 100%;
+
+#maps {
+	height: 92vh;
 	width: 100%;
 	top: 5%;
 }
+
 #guessingMap {
 	height: 25%;
 	width: 25%;
@@ -17,13 +20,19 @@ body {
 	right: 75px;
 	z-index: 20;
 }
+
 #streetView {
-	height: 85%;
+	height: 90%;
 	z-index: 10;
 }
 
 #title {
+	height: calc(8vh - 48px);
+	width: calc(100vw - 48px);
+	padding: 24px;
 	font-family: "Trebuchet MS";
 	font-size: 50px;
-    padding: 24px;
+}
+
+#marker {
 }
