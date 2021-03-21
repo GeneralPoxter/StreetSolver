@@ -10,19 +10,20 @@ body {
 	height: 92vh;
 	width: 100%;
 	top: 5%;
+	position: relative;
 }
 
 #guessingMap {
 	height: 25%;
 	width: 25%;
 	position: absolute;
-	top: 175px;
-	right: 75px;
+	top: 8vh;
+	right: 5vw;
 	z-index: 20;
 }
 
 #streetView {
-	height: 90%;
+	height: 85%;
 	z-index: 10;
 }
 
@@ -35,4 +36,8 @@ body {
 }
 
 #marker {
+	bottom: 0px;
+	padding: 24px;
+	font-family: "Trebuchet MS";
+	font-size: 20px;
 }

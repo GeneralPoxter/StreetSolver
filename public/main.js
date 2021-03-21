@@ -5,6 +5,8 @@ script.async = true;
 let map;
 let panorama;
 
+var markerLat, markerLong;
+
 window.initMap = function() {
 	const sv = new google.maps.StreetViewService();
 	const randomLoc = { lat: rangeRandom(-80, 80), lng: rangeRandom(-180, 180) };
@@ -19,7 +21,7 @@ window.initMap = function() {
 		},
 		function(data, status) {
 			if (status === 'OK') {
-				map = new google.maps.Map(document.getElementById('guessingMap'), {
+				guessingMap = new google.maps.Map(document.getElementById('guessingMap'), {
 					center: {
 						lat: 0,
 						lng: 0
@@ -28,6 +30,29 @@ window.initMap = function() {
 					streetViewControl: false,
 					mapTypeId: google.maps.MapTypeId.ROADMAP
 				});
+
+				var marker = new google.maps.Marker({
+					map: guessingMap,
+					position: {lat: 0, lng: 0},
+					draggable: true,
+					title: 'Guessing Marker'
+				});
+				
+				google.maps.event.addListener(marker, 'dragend', function() {
+					updateMarker();
+				});
+
+				guessingMap.addListener('click', (mapsMouseEvent) => {
+					marker.setPosition(mapsMouseEvent.latLng);
+					updateMarker();
+				});
+
+				function updateMarker(){
+					markerLat = marker.getPosition().lat();
+					markerLong = marker.getPosition().lng();
+					document.getElementById("marker").innerHTML = "Marker At: "+markerLat+","+markerLong;
+					console.log(markerLat+","+markerLong);
+				}
 
 				panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'));
 				panorama.setOptions({
@@ -63,19 +88,6 @@ function() {
 		}
 	});
 
-	var markerLat, markerLong;
-
-	var marker = new google.maps.Marker({
-		map: guessingMap,
-		position: 0,
-		draggable: true,
-		title: 'Guessing Marker'
-	});
-
-	google.maps.event.addListener(Marker, 'dragend', function() {
-		document.getElementsByName('markerLat')[0].value = marker.getPosition().lat();
-		document.getElementsByName('markerLong')[0].value = marker.getPosition().lng();
-	});
 };
 */
 
