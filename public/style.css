@@ -41,3 +41,11 @@ body {
 	font-family: "Trebuchet MS";
 	font-size: 20px;
 }
+
+#guess {
+	
+	height: 5%;
+	width: 5%;
+	font-family: "Trebuchet MS";
+	font-size: 30px;
+}
