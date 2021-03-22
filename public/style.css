@@ -4,18 +4,25 @@ body {
 	width: 100vw;
 	margin: 0;
 	padding: 0;
+	overflow-x: hidden;
+}
+
+#title {
+	width: calc(100vw - 48px);
+	padding: 24px;
+	font-family: "Trebuchet MS";
+	font-size: 50px;
 }
 
 #maps {
-	height: 92vh;
+	height: calc(100vh - 106px);
 	width: 100%;
-	top: 5%;
 	position: relative;
 }
 
 #guessingMap {
-	height: 25%;
-	width: 25%;
+	height: 300px;
+	width: 500px;
 	position: absolute;
 	top: 8vh;
 	right: 5vw;
@@ -23,16 +30,8 @@ body {
 }
 
 #streetView {
-	height: 85%;
+	height: 90%;
 	z-index: 10;
-}
-
-#title {
-	height: calc(8vh - 48px);
-	width: calc(100vw - 48px);
-	padding: 24px;
-	font-family: "Trebuchet MS";
-	font-size: 50px;
 }
 
 #marker {
