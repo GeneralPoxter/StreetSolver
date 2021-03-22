@@ -6,14 +6,14 @@ let map;
 let panorama;
 
 var markerLat, markerLong;
+var randomLoc;
 
 window.initMap = function() {
 	const sv = new google.maps.StreetViewService();
-	const randomLoc = { lat: rangeRandom(-80, 80), lng: rangeRandom(-180, 180) };
 	/** For US-only:
 	const randomLoc = { lat: rangeRandom(30, 50), lng: rangeRandom(-125, -65) };
 	*/
-
+	randomLoc = { lat: rangeRandom(-80, 80), lng: rangeRandom(-180, 180) };
 	sv.getPanorama(
 		{
 			location: randomLoc,
@@ -36,8 +36,8 @@ function initGame(data, status) {
 			fullscreenControl: true,
 			zoomControl: true,
 			zoomControlOptions: {
-				style: google.maps.ZoomControlStyle.LARGE 
-			},
+				style: google.maps.ZoomControlStyle.LARGE
+			}
 		});
 
 		var marker = new google.maps.Marker({
@@ -63,6 +63,10 @@ function initGame(data, status) {
 			console.log(markerLat + ',' + markerLong);
 		}
 
+		document.getElementById('guess').click(function() {
+			console.log(calcScore());
+		});
+
 		panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'));
 		panorama.setOptions({
 			addressControl: false,
@@ -85,17 +89,19 @@ function rangeRandom(min, max) {
 	return Math.random() * (max - min) + min;
 }
 
-/*** 
-function() {
+function calcScore() {
+	const latRad1 = markerLat * Math.PI / 180;
+	const latRad2 = randomLoc.lat * Math.PI / 180;
+	const deltaLat = (randomLoc.lat - markerLat) * Math.PI / 180;
+	const deltaLng = (randomLoc.lng - markerLong) * Math.PI / 180;
+	const a =
+		Math.pow(Math.sin(deltaLat / 2), 2) + Math.cos(latRad1) * Math.cos(latRad2) * Math.pow(Math.sin(deltaLng), 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Marth.sqrt(1 - a));
 
-	streetview = new google.maps.StreetViewPanorama(document.getElementById('streetView'), {
-		position: { 
-			lat: 48.8584,
-			lng: 2.296
-		}
-	});
+	const distance = 6371e3 * c; //in meters
 
-};
-*/
+	var score = 5000 * Math.pow(e, -distance / 2000);
+	return score;
+}
 
 document.head.appendChild(script);
