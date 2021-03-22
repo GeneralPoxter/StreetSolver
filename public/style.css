@@ -43,7 +43,9 @@ body {
 }
 
 #guess {
-	
+	position: absolute;
+	bottom: 0;
+	right: 0;
 	height: 5%;
 	width: 5%;
 	font-family: "Trebuchet MS";
