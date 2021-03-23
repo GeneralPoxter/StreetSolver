@@ -9,6 +9,8 @@ var markerLat, markerLong;
 var randomLoc;
 
 window.initMap = function() {
+	markerLat = 0;
+	markerLong = 0;
 	const sv = new google.maps.StreetViewService();
 	/** For US-only:
 	const randomLoc = { lat: rangeRandom(30, 50), lng: rangeRandom(-125, -65) };
@@ -63,10 +65,6 @@ function initGame(data, status) {
 			console.log(markerLat + ',' + markerLong);
 		}
 
-		document.getElementById('guess').click(function() {
-			console.log(calcScore());
-		});
-
 		panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'));
 		panorama.setOptions({
 			addressControl: false,
@@ -94,14 +92,15 @@ function calcScore() {
 	const latRad2 = randomLoc.lat * Math.PI / 180;
 	const deltaLat = (randomLoc.lat - markerLat) * Math.PI / 180;
 	const deltaLng = (randomLoc.lng - markerLong) * Math.PI / 180;
-	const a =
-		Math.pow(Math.sin(deltaLat / 2), 2) + Math.cos(latRad1) * Math.cos(latRad2) * Math.pow(Math.sin(deltaLng), 2);
-	const c = 2 * Math.atan2(Math.sqrt(a), Marth.sqrt(1 - a));
+	const a = Math.pow(Math.sin(deltaLat / 2), 2) + Math.cos(latRad1) * Math.cos(latRad2) * Math.pow(Math.sin(deltaLng / 2), 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-	const distance = 6371e3 * c; //in meters
-
-	var score = 5000 * Math.pow(e, -distance / 2000);
-	return score;
+	const distance = 6371e3 * c / 1000; //in kilometers
+	console.log("Distance:"+distance+"km");
+	
+	var score = Math.round(5000 * Math.pow(Math.E, (-distance / 2000)));
+	console.log(score);
+	document.getElementById('marker').innerHTML = "Score: " + score+" / 5000";
 }
 
 document.head.appendChild(script);
