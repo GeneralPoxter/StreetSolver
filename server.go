@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -20,10 +21,20 @@ func main() {
 	http.Handle("/", fileServer)
 	http.HandleFunc("/getLoc", getLoc)
 
-	fmt.Println("Starting server at port 8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// Port function for Heroku deployment
+func getPort() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+	}
+	fmt.Println("Starting server at port " + port)
+	return ":" + port
 }
 
 func getLoc(w http.ResponseWriter, r *http.Request) {
