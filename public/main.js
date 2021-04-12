@@ -82,4 +82,23 @@ function initGame(data, status) {
 	}
 }
 
+async function calcScore(){
+	let xhr = new XMLHttpRequest();
+	var url = '/sendScore'
+	xhr.open("POST", url, true)
+
+	xhr.setRequestHeader("Content-Type","application")
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState === 4 && xhr.status === 20){
+			console.log(this.responseText);
+		}
+	}
+	var data = JSON.stringify({"Lat":markerLat,"Lng":markerLng})
+	xhr.send(data);
+
+	score = await fetch('/getScore').then((res) => res.text()).then((res) => JSON.parse(res));
+	console.log(score);
+	document.getElementById('marker').innerHTML = "Score: " + score+" / 5000";
+}
+
 document.head.appendChild(script);

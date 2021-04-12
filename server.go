@@ -16,10 +16,15 @@ type Loc struct {
 	Lng float64 `json:"lng"`
 }
 
+var location Loc
+var MarkerLocation Loc
+
 func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fileServer)
 	http.HandleFunc("/getLoc", getLoc)
+	http.HandleFunc("/getScore", getScore)
+	http.HandleFunc("/sendScore", sendScore)
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -50,6 +55,7 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 
 	rand.Seed(time.Now().UnixNano())
 	loc := Loc{randRange(-80, 80), randRange(-180, 180)}
+	location = loc
 	fmt.Println(loc)
 	js, err := json.Marshal(loc)
 	if err != nil {
@@ -61,11 +67,55 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func getScore(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getScore" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	//var markerLoc Loc
+	//markerLoc.Lat = 0
+	//markerLoc.Lng = 0
+	js, err := json.Marshal(calculateScore(MarkerLocation, location))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+}
+
+func sendScore(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/sendScore" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	decoder := json.NewDecoder(r.Body)
+	var t Loc
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(t)
+	MarkerLocation.Lat = t.Lat
+	MarkerLocation.Lng = t.Lng
+}
+
 func randRange(min, max float64) float64 {
 	return rand.Float64()*(max-min) + min
 }
 
-func getScore(loc1, loc2 Loc) int {
+func calculateScore(loc1, loc2 Loc) int {
 	latRad1 := loc1.Lat * math.Pi / 180
 	latRad2 := loc2.Lat * math.Pi / 180
 	deltaLat := (loc2.Lat - loc1.Lat) * math.Pi / 180
