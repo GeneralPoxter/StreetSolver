@@ -33,7 +33,6 @@ func main() {
 	}
 }
 
-// Port function for Heroku deployment
 func getPort() string {
 	port := os.Getenv("PORT")
 	if port == "" {
