@@ -44,8 +44,13 @@ function initGame(data, status) {
 			title: 'Guessing Marker'
 		});
 
+		google.maps.event.addListener(marker, 'dragend', function() {
+			updateMarker();
+		});
+
 		guessingMap.addListener('click', (mapsMouseEvent) => {
 			marker.setPosition(mapsMouseEvent.latLng);
+			updateMarker();
 		});
 
 		panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'));
@@ -67,13 +72,19 @@ function initGame(data, status) {
 	}
 }
 
+function updateMarker() {
+	document.getElementById('marker').innerHTML =
+		'Marker At: ' + marker.getPosition().lng() + ', ' + marker.getPosition().lat();
+	console.log(markerLat + ',' + markerLng);
+}
+
 async function getScore() {
 	let params = new URLSearchParams({
 		lat: marker.getPosition().lat(),
 		lng: marker.getPosition().lng()
 	}).toString();
 	const score = await fetch('/getScore?' + params).then((res) => res.text());
-	console.log(score);
+	document.getElementById('marker').innerHTML = 'Score: ' + score + ' / 5000';
 }
 
 document.head.appendChild(script);
