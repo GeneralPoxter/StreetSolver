@@ -4,12 +4,9 @@ script.async = true;
 
 let map;
 let panorama;
-let markerLat = 0,
-	markerLng = 0;
+let marker;
 
 window.initMap = async function() {
-	markerLat = 0;
-	markerLng = 0;
 	const sv = new google.maps.StreetViewService();
 	/** For US-only:
 	const randomLoc = { lat: rangeRandom(30, 50), lng: rangeRandom(-125, -65) };
@@ -40,28 +37,16 @@ function initGame(data, status) {
 			}
 		});
 
-		let marker = new google.maps.Marker({
+		marker = new google.maps.Marker({
 			map: guessingMap,
 			position: { lat: 0, lng: 0 },
 			draggable: true,
 			title: 'Guessing Marker'
 		});
 
-		google.maps.event.addListener(marker, 'dragend', function() {
-			updateMarker();
-		});
-
 		guessingMap.addListener('click', (mapsMouseEvent) => {
 			marker.setPosition(mapsMouseEvent.latLng);
-			updateMarker();
 		});
-
-		function updateMarker() {
-			markerLat = marker.getPosition().lat();
-			markerLng = marker.getPosition().lng();
-			document.getElementById('marker').innerHTML = 'Marker At: ' + markerLat + ',' + markerLng;
-			console.log(markerLat + ',' + markerLng);
-		}
 
 		panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'));
 		panorama.setOptions({
@@ -82,23 +67,13 @@ function initGame(data, status) {
 	}
 }
 
-async function calcScore(){
-	let xhr = new XMLHttpRequest();
-	var url = '/sendScore'
-	xhr.open("POST", url, true)
-
-	xhr.setRequestHeader("Content-Type","application")
-	xhr.onreadystatechange = function () {
-		if (xhr.readyState === 4 && xhr.status === 20){
-			console.log(this.responseText);
-		}
-	}
-	var data = JSON.stringify({"Lat":markerLat,"Lng":markerLng})
-	xhr.send(data);
-
-	score = await fetch('/getScore').then((res) => res.text()).then((res) => JSON.parse(res));
+async function getScore() {
+	let params = new URLSearchParams({
+		lat: marker.getPosition().lat(),
+		lng: marker.getPosition().lng()
+	}).toString();
+	const score = await fetch('/getScore?' + params).then((res) => res.text());
 	console.log(score);
-	document.getElementById('marker').innerHTML = "Score: " + score+" / 5000";
 }
 
 document.head.appendChild(script);

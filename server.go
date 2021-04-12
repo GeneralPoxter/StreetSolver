@@ -8,7 +8,10 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
+
+	"github.com/gorilla/schema"
 )
 
 type Loc struct {
@@ -17,14 +20,13 @@ type Loc struct {
 }
 
 var location Loc
-var MarkerLocation Loc
+var markerLocation Loc
 
 func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fileServer)
 	http.HandleFunc("/getLoc", getLoc)
 	http.HandleFunc("/getScore", getScore)
-	http.HandleFunc("/sendScore", sendScore)
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -54,10 +56,9 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	loc := Loc{randRange(-80, 80), randRange(-180, 180)}
-	location = loc
-	fmt.Println(loc)
-	js, err := json.Marshal(loc)
+	location = Loc{randRange(-80, 80), randRange(-180, 180)}
+	fmt.Println(location)
+	js, err := json.Marshal(location)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -65,6 +66,10 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+func randRange(min, max float64) float64 {
+	return rand.Float64()*(max-min) + min
 }
 
 func getScore(w http.ResponseWriter, r *http.Request) {
@@ -78,41 +83,15 @@ func getScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//var markerLoc Loc
-	//markerLoc.Lat = 0
-	//markerLoc.Lng = 0
-	js, err := json.Marshal(calculateScore(MarkerLocation, location))
+	decoder := schema.NewDecoder()
+	err := decoder.Decode(&markerLocation, r.URL.Query())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println("Error in GET parameters: ", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
-}
-
-func sendScore(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/sendScore" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-	if r.Method != "POST" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-	decoder := json.NewDecoder(r.Body)
-	var t Loc
-	err := decoder.Decode(&t)
-	if err != nil {
-		panic(err)
-	}
-	log.Println(t)
-	MarkerLocation.Lat = t.Lat
-	MarkerLocation.Lng = t.Lng
-}
-
-func randRange(min, max float64) float64 {
-	return rand.Float64()*(max-min) + min
+	score := strconv.Itoa(calculateScore(markerLocation, location))
+	fmt.Fprint(w, score)
 }
 
 func calculateScore(loc1, loc2 Loc) int {
