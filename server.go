@@ -19,8 +19,25 @@ type Loc struct {
 	Lng float64 `json:"lng"`
 }
 
+type Polygon []Loc
+
 var location Loc
 var markerLocation Loc
+
+//maryland
+var poly = []Loc{{39.72108607946068, -79.47666224600735},
+	{39.72322905639499, -75.78820613062912},
+	{38.46024225250412, -75.69355492964675},
+	{38.45107088128103, -75.04934375153289},
+	{38.02838839691087, -75.24220525055418},
+	{38.40467596253332, -77.04430644149704},
+	{38.90229143401203, -76.90148419419953},
+	{39.00054556187369, -77.04155988235236},
+	{39.22404469392229, -77.45286054814271},
+	{39.699283697533666, -77.93533222975897},
+	{39.69542029957551, -78.18507807210698},
+	{39.64867115193669, -78.76619476351625},
+	{39.20622885088143, -79.48645056628894}}
 
 func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
@@ -55,7 +72,14 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	location = Loc{randRange(-80, 80), randRange(-180, 180)}
+	location = Loc{randRange(38, 40), randRange(-78, -75)}
+	boundaryCheck := true
+	for boundaryCheck {
+		if isLocInPoly(poly, location) {
+			boundaryCheck = false
+		}
+	}
+
 	fmt.Println(location)
 	js, err := json.Marshal(location)
 	if err != nil {
@@ -69,6 +93,23 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 
 func randRange(min, max float64) float64 {
 	return rand.Float64()*(max-min) + min
+}
+
+func isLocInPoly(poly Polygon, location Loc) bool {
+	var inside bool
+	i, j := 0, len(poly)-1
+	for ; i < len(poly); j, i = i, i+1 {
+		latI, lngI := poly[i].Lat, poly[i].Lng
+		latJ, lngJ := poly[j].Lat, poly[j].Lng
+
+		intersect := ((lngI > location.Lng) != (lngJ > location.Lng)) && (location.Lat < (latJ-latI)*(location.Lng-lngI)/(lngJ-lngI)+latI)
+		if intersect {
+			fmt.Println("nah")
+			inside = !inside
+		}
+	}
+
+	return inside
 }
 
 func getScore(w http.ResponseWriter, r *http.Request) {
