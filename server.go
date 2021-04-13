@@ -71,10 +71,9 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	location = Loc{randRange(38, 40), randRange(-78, -75)}
 	boundaryCheck := true
 	for boundaryCheck {
+		location = Loc{randRange(38, 40), randRange(-78, -75)}
 		if isLocInPoly(poly, location) {
 			boundaryCheck = false
 		}
@@ -92,6 +91,7 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 }
 
 func randRange(min, max float64) float64 {
+	rand.Seed(time.Now().UnixNano())
 	return rand.Float64()*(max-min) + min
 }
 

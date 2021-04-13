@@ -8,14 +8,13 @@ let marker;
 
 window.initMap = async function() {
 	const sv = new google.maps.StreetViewService();
-	/** For US-only:
-	const randomLoc = { lat: rangeRandom(30, 50), lng: rangeRandom(-125, -65) };
-	*/
+	let location = await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res))
+	console.log(location);
 	sv.getPanorama(
 		{
-			location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
-			radius: 100000,
-			source: google.maps.StreetViewSource.OUTDOOR
+			location: location,
+			source: google.maps.StreetViewPreference.OUTDOOR,
+			// preference: google.maps.StreetViewPreference.BEST
 		},
 		initGame
 	);
