@@ -18,10 +18,20 @@ type Loc struct {
 	Lat float64 `json:"lat"`
 	Lng float64 `json:"lng"`
 }
+type LocInfo struct {
+	Target: struct {
+		Lat float64 `json:"lat"`
+		Lng float64 `json:"lng"`
+	} `json:"target"`
+	Marker: struct {
+		Lat float64 `json:"lat"`
+		Lng float64 `json:"lng"`
+	} `json:"marker"`
+}
 
 type Polygon []Loc
 
-var location Loc
+var target Loc
 var markerLocation Loc
 
 //maryland
@@ -73,14 +83,14 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 
 	boundaryCheck := true
 	for boundaryCheck {
-		location = Loc{randRange(38, 40), randRange(-78, -75)}
-		if isLocInPoly(poly, location) {
+		target = Loc{randRange(38, 40), randRange(-78, -75)}
+		if isLocInPoly(poly, target) {
 			boundaryCheck = false
 		}
 	}
 
-	fmt.Println(location)
-	js, err := json.Marshal(location)
+	fmt.Println(target)
+	js, err := json.Marshal(target)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -104,7 +114,6 @@ func isLocInPoly(poly Polygon, location Loc) bool {
 
 		intersect := ((lngI > location.Lng) != (lngJ > location.Lng)) && (location.Lat < (latJ-latI)*(location.Lng-lngI)/(lngJ-lngI)+latI)
 		if intersect {
-			fmt.Println("nah")
 			inside = !inside
 		}
 	}
@@ -122,19 +131,21 @@ func getScore(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
-
+	var info LocInfo
 	decoder := schema.NewDecoder()
-	err := decoder.Decode(&markerLocation, r.URL.Query())
+	err := decoder.Decode(&info, r.URL.Query())
+	target = info.Target
+	markerLocation = info.Marker
 	if err != nil {
 		log.Println("Error in GET parameters: ", err)
 		return
 	}
 
-	score := strconv.Itoa(calculateScore(markerLocation, location))
+	score := strconv.Itoa(calculateScore(markerLocation, target))
 	fmt.Fprint(w, score)
 }
 
-func calculateScore(loc1, loc2 Loc) int {
+func calculateScore(loc1, loc2 []Loc) int {
 	latRad1 := loc1.Lat * math.Pi / 180
 	latRad2 := loc2.Lat * math.Pi / 180
 	deltaLat := (loc2.Lat - loc1.Lat) * math.Pi / 180

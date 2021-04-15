@@ -5,14 +5,13 @@ script.async = true;
 let map;
 let panorama;
 let marker;
+let target
 
 window.initMap = async function() {
 	const sv = new google.maps.StreetViewService();
-	let location = await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res))
-	console.log(location);
 	sv.getPanorama(
 		{
-			location: location,
+			location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
 			source: google.maps.StreetViewPreference.OUTDOOR,
 			// preference: google.maps.StreetViewPreference.BEST
 		},
@@ -65,6 +64,11 @@ function initGame(data, status) {
 			pitch: 0
 		});
 		panorama.setVisible(true);
+
+		target = {
+			lat: data.location.latLng.lat(),
+			lng: data.location.latLng.lng()
+		}
 	} else {
 		console.log('Street View not found.');
 		window.initMap();
@@ -74,13 +78,16 @@ function initGame(data, status) {
 function updateMarker() {
 	document.getElementById('marker').innerHTML =
 		'Marker At: ' + marker.getPosition().lng() + ', ' + marker.getPosition().lat();
-	console.log(markerLat + ',' + markerLng);
 }
 
 async function getScore() {
 	let params = new URLSearchParams({
-		lat: marker.getPosition().lat(),
-		lng: marker.getPosition().lng()
+		// Todo: make this the original location of the panorama
+		target: target,
+		marker: {
+			lat: marker.getPosition().lat(),
+			lng: marker.getPosition().lng()
+		}
 	}).toString();
 	const score = await fetch('/getScore?' + params).then((res) => res.text());
 	document.getElementById('marker').innerHTML = 'Score: ' + score + ' / 5000';
