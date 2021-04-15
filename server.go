@@ -10,29 +10,17 @@ import (
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/gorilla/schema"
 )
 
 type Loc struct {
 	Lat float64 `json:"lat"`
 	Lng float64 `json:"lng"`
 }
-type LocInfo struct {
-	Target: struct {
-		Lat float64 `json:"lat"`
-		Lng float64 `json:"lng"`
-	} `json:"target"`
-	Marker: struct {
-		Lat float64 `json:"lat"`
-		Lng float64 `json:"lng"`
-	} `json:"marker"`
-}
 
 type Polygon []Loc
 
 var target Loc
-var markerLocation Loc
+var marker Loc
 
 //maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
@@ -89,7 +77,6 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Println(target)
 	js, err := json.Marshal(target)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -131,21 +118,26 @@ func getScore(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method is not supported.", http.StatusNotFound)
 		return
 	}
-	var info LocInfo
-	decoder := schema.NewDecoder()
-	err := decoder.Decode(&info, r.URL.Query())
-	target = info.Target
-	markerLocation = info.Marker
-	if err != nil {
-		log.Println("Error in GET parameters: ", err)
-		return
+
+	query := r.URL.Query()
+	values := make(map[string]float64)
+	for key, _ := range query {
+		s, err := strconv.ParseFloat(query.Get(key), 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		values[key] = s
 	}
 
-	score := strconv.Itoa(calculateScore(markerLocation, target))
+	target = Loc{Lat: values["targetLat"], Lng: values["targetLng"]}
+	marker = Loc{Lat: values["markerLat"], Lng: values["markerLng"]}
+
+	score := strconv.Itoa(calculateScore(marker, target))
 	fmt.Fprint(w, score)
 }
 
-func calculateScore(loc1, loc2 []Loc) int {
+func calculateScore(loc1, loc2 Loc) int {
 	latRad1 := loc1.Lat * math.Pi / 180
 	latRad2 := loc2.Lat * math.Pi / 180
 	deltaLat := (loc2.Lat - loc1.Lat) * math.Pi / 180

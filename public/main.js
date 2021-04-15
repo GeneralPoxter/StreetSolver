@@ -82,13 +82,12 @@ function updateMarker() {
 
 async function getScore() {
 	let params = new URLSearchParams({
-		// Todo: make this the original location of the panorama
-		target: target,
-		marker: {
-			lat: marker.getPosition().lat(),
-			lng: marker.getPosition().lng()
-		}
+		targetLat: target.lat,
+		targetLng: target.lng,
+		markerLat: marker.getPosition().lat(),
+		markerLng: marker.getPosition().lng()
 	}).toString();
+	console.log(params);
 	const score = await fetch('/getScore?' + params).then((res) => res.text());
 	document.getElementById('marker').innerHTML = 'Score: ' + score + ' / 5000';
 }
