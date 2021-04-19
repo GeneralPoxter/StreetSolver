@@ -5,14 +5,18 @@ script.async = true;
 let map;
 let panorama;
 let marker;
-let target
+let target;
+
+let info = document.getElementById('info');
+let guessButton = document.getElementById('guess');
+let returnButton = document.getElementById('return');
 
 window.initMap = async function() {
 	const sv = new google.maps.StreetViewService();
 	sv.getPanorama(
 		{
 			location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
-			source: google.maps.StreetViewPreference.OUTDOOR,
+			source: google.maps.StreetViewPreference.OUTDOOR
 			// preference: google.maps.StreetViewPreference.BEST
 		},
 		initGame
@@ -58,38 +62,53 @@ function initGame(data, status) {
 			showRoadLabels: false
 		});
 
-		panorama.setPano(data.location.pano);
-		panorama.setPov({
-			heading: 270,
-			pitch: 0
-		});
-		panorama.setVisible(true);
+		goTo(data.location.pano);
+
+		returnButton.onclick = function() {
+			goTo(data.location.pano);
+		};
+
+		guessButton.onclick = getScore;
 
 		target = {
 			lat: data.location.latLng.lat(),
 			lng: data.location.latLng.lng()
-		}
+		};
 	} else {
 		console.log('Street View not found.');
 		window.initMap();
 	}
 }
 
+function goTo(loc) {
+	panorama.setPano(loc);
+	panorama.setPov({
+		heading: 270,
+		pitch: 0
+	});
+	panorama.setVisible(true);
+}
+
 function updateMarker() {
-	document.getElementById('marker').innerHTML =
-		'Marker At: ' + marker.getPosition().lng() + ', ' + marker.getPosition().lat();
+	info.innerHTML = 'Marker At: ' + marker.getPosition().lng() + ', ' + marker.getPosition().lat();
 }
 
 async function getScore() {
-	let params = new URLSearchParams({
-		targetLat: target.lat,
-		targetLng: target.lng,
-		markerLat: marker.getPosition().lat(),
-		markerLng: marker.getPosition().lng()
-	}).toString();
-	console.log(params);
-	const score = await fetch('/getScore?' + params).then((res) => res.text());
-	document.getElementById('marker').innerHTML = 'Score: ' + score + ' / 5000';
+	if (guessButton.innerHTML == 'Guess') {
+		let params = new URLSearchParams({
+			targetLat: target.lat,
+			targetLng: target.lng,
+			markerLat: marker.getPosition().lat(),
+			markerLng: marker.getPosition().lng()
+		}).toString();
+		const score = await fetch('/getScore?' + params).then((res) => res.text());
+		info.innerHTML = 'Score: ' + score + ' / 5000';
+		guessButton.innerHTML = 'Next';
+	} else {
+		guessButton.innerHTML = 'Guess';
+		info.innerHTML = 'Marker At: 0,0';
+		initMap();
+	}
 }
 
 document.head.appendChild(script);

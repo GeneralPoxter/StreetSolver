@@ -4,19 +4,24 @@
 <head>
     <title>StreetSolver</title>
     <link rel="stylesheet" href="style.css" type="text/css">
-    <link href="" rel="icon" type="image/png"/>
+    <link href="img/favicon.png" rel="icon" type="image/png"/>
     <script defer src="main.js"></script>
 </head>
 
 <body>
-    <div id="title">StreetSolver Demo</div>
+    <div id="title">
+        StreetSolver Demo
+        <img src="img/favicon.png"/>
+    </div>
     <div id="maps">
         <div id="streetView"></div>
         <div id="guessingMap"></div>
-        <div id="marker">Marker At: 0,0</div>
-        <button id="guess" onclick="getScore()">Guess!</button>
     </div>
-    
+    <div id="interface">
+        <div id="info">Marker At: 0,0</div>
+        <button id="guess">Guess</button>
+        <button id="return">Return</button>
+    </div>
 </body>
 
 </html>

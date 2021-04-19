@@ -22,7 +22,7 @@ type Polygon []Loc
 var target Loc
 var marker Loc
 
-//maryland
+// Maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
 	{39.72322905639499, -75.78820613062912},
 	{38.46024225250412, -75.69355492964675},

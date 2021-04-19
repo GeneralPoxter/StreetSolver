@@ -14,8 +14,12 @@ body {
 	font-size: 50px;
 }
 
+#title img {
+	height: 50px;
+}
+
 #maps {
-	height: calc(100vh - 106px);
+	height: calc(100vh - 200px);
 	width: 100%;
 	position: relative;
 }
@@ -27,6 +31,12 @@ body {
 	top: 8vh;
 	right: 5vw;
 	z-index: 20;
+	opacity: 0.5;
+	transition: opacity 0.2s;
+}
+
+#guessingMap:hover {
+	opacity: 1.0;
 }
 
 #streetView {
@@ -34,19 +44,24 @@ body {
 	z-index: 10;
 }
 
-#marker {
-	bottom: 0px;
-	padding: 24px;
+#interface {
+	display: flex;
+	flex-direction: row;
+}
+
+#info {
+	padding-left: 24px;
+	width: 70%;
 	font-family: "Trebuchet MS";
 	font-size: 20px;
 }
 
-#guess {
-	position: absolute;
-	bottom: 2%;
-	right: 5%;
-	height: 5%;
-	width: 7%;
+#interface button {
+	margin-left: 10px;
 	font-family: "Trebuchet MS";
 	font-size: 20px;
+}
+
+#interface button:hover {
+	cursor: pointer;
 }
