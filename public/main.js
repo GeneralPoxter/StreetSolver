@@ -5,7 +5,9 @@ script.async = true;
 let map;
 let panorama;
 let marker;
+let markerCorrect;
 let target;
+let line;
 
 let info = document.getElementById('info');
 let guessButton = document.getElementById('guess');
@@ -45,14 +47,39 @@ function initGame(data, status) {
 			draggable: true,
 			title: 'Guessing Marker'
 		});
+		
+		markerCorrect = new google.maps.Marker({
+			map: guessingMap,
+			position: { lat: 0, lng: 0 },
+			icon: {
+				path: google.maps.SymbolPath.CIRCLE,
+				scale: 5,
+			},
+			draggable: false,
+			title: 'Actual Location'
+		});
+		markerCorrect.setVisible(false);
+
+		line = new google.maps.Polyline({
+			icons: [
+				{
+					icon: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+					offset: "100%",
+				},
+			],
+			map: guessingMap,
+		});
+		line.setVisible(false);
 
 		google.maps.event.addListener(marker, 'dragend', function() {
 			updateMarker();
 		});
 
 		guessingMap.addListener('click', (mapsMouseEvent) => {
-			marker.setPosition(mapsMouseEvent.latLng);
-			updateMarker();
+			if (guessButton.innerHTML=="Guess"){
+				marker.setPosition(mapsMouseEvent.latLng);
+				updateMarker();
+			}
 		});
 
 		panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'));
@@ -104,9 +131,22 @@ async function getScore() {
 		const score = await fetch('/getScore?' + params).then((res) => res.text());
 		info.innerHTML = 'Score: ' + score + ' / 5000';
 		guessButton.innerHTML = 'Next';
+		markerCorrect.setPosition({lat: target.lat, lng: target.lng});
+		markerCorrect.setVisible(true)
+		marker.setDraggable(false);
+		line.setVisible(true)
+		line.setPath(
+			[
+				{lat: marker.getPosition().lat(), lng: marker.getPosition().lng()},
+				{lat: target.lat, lng: target.lng},
+			]
+		)
 	} else {
 		guessButton.innerHTML = 'Guess';
 		info.innerHTML = 'Marker At: 0,0';
+		marker.setDraggable(true);
+		markerCorrect.setVisible(false);
+		line.setVisible(false);
 		initMap();
 	}
 }
