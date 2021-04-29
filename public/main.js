@@ -130,7 +130,6 @@ async function getScore() {
 		}).toString();
 		const score = await fetch('/getScore?' + params).then((res) => res.text());
 		info.innerHTML = 'Score: ' + score + ' / 5000';
-		guessButton.innerHTML = 'Next';
 		markerCorrect.setPosition({lat: target.lat, lng: target.lng});
 		markerCorrect.setVisible(true)
 		marker.setDraggable(false);
@@ -141,12 +140,32 @@ async function getScore() {
 				{lat: target.lat, lng: target.lng},
 			]
 		)
-	} else {
+		const round = await fetch('/getRound').then((res) => res.text());
+		if (round<5){
+			guessButton.innerHTML = 'Next';
+		}
+		else {
+			guessButton.innerHTML = 'Finish';
+		}
+	} else if (guessButton.innerHTML == 'Next'){
 		guessButton.innerHTML = 'Guess';
 		info.innerHTML = 'Marker At: 0,0';
 		marker.setDraggable(true);
 		markerCorrect.setVisible(false);
 		line.setVisible(false);
+		initMap();
+	}
+	else if (guessButton.innerHTML == 'Finish'){
+		guessButton.innerHTML = 'Restart';
+		const finalScore = await fetch('/getTotalScore').then((res) => res.text());
+		info.innerHTML = "Final Score: "+finalScore+" / 25000";
+		markerCorrect.setVisible(false);
+		line.setVisible(false);
+	}
+	else {
+		guessButton.innerHTML = 'Guess';
+		marker.setDraggable(true);
+		info.innerHTML = 'Marker At: 0,0';
 		initMap();
 	}
 }

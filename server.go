@@ -19,8 +19,17 @@ type Loc struct {
 
 type Polygon []Loc
 
+type Geojsontype struct {
+	Type        string
+	Coordinates json.RawMessage
+	Loc         Loc
+	Polygon     Polygon
+}
+
 var target Loc
 var marker Loc
+var round int
+var totalScore int
 
 // Maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
@@ -42,6 +51,10 @@ func main() {
 	http.Handle("/", fileServer)
 	http.HandleFunc("/getLoc", getLoc)
 	http.HandleFunc("/getScore", getScore)
+	http.HandleFunc("/getRound", getRound)
+	http.HandleFunc("/getTotalScore", getTotalScore)
+	round = 0
+	totalScore = 0
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -119,6 +132,11 @@ func getScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	round++
+	if round == 6 {
+		round = 1
+		totalScore = 0
+	}
 	query := r.URL.Query()
 	values := make(map[string]float64)
 	for key, _ := range query {
@@ -133,7 +151,10 @@ func getScore(w http.ResponseWriter, r *http.Request) {
 	target = Loc{Lat: values["targetLat"], Lng: values["targetLng"]}
 	marker = Loc{Lat: values["markerLat"], Lng: values["markerLng"]}
 
-	score := strconv.Itoa(calculateScore(marker, target))
+	scoreInt := calculateScore(marker, target)
+	totalScore += scoreInt
+	score := strconv.Itoa(scoreInt)
+
 	fmt.Fprint(w, score)
 }
 
@@ -149,4 +170,35 @@ func calculateScore(loc1, loc2 Loc) int {
 	score := int(math.Round(5000 * math.Pow(math.E, (-distance/2000))))
 
 	return score
+}
+
+func getRound(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getRound" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	roundReturn := strconv.Itoa(round)
+
+	fmt.Fprint(w, roundReturn)
+
+}
+
+func getTotalScore(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getTotalScore" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+	totalScoreReturn := strconv.Itoa(totalScore)
+
+	fmt.Fprint(w, totalScoreReturn)
 }
