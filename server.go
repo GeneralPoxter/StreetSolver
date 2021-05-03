@@ -84,10 +84,14 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 
 	boundaryCheck := true
 	for boundaryCheck {
+		target = Loc{randRange(-80, 80), randRange(-180, 180)}
+		// TODO: Make a Poly that excludes oceans
+		boundaryCheck = false
+		/* Temporarily disable Maryland-only game
 		target = Loc{randRange(38, 40), randRange(-78, -75)}
 		if isLocInPoly(poly, target) {
 			boundaryCheck = false
-		}
+		} */
 	}
 
 	js, err := json.Marshal(target)

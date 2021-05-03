@@ -8,6 +8,7 @@ let marker;
 let markerCorrect;
 let target;
 let line;
+let ready = false;
 
 let info = document.getElementById('info');
 let guessButton = document.getElementById('guess');
@@ -47,13 +48,14 @@ function initGame(data, status) {
 			draggable: true,
 			title: 'Guessing Marker'
 		});
-		
+		updateMarker();
+
 		markerCorrect = new google.maps.Marker({
 			map: guessingMap,
 			position: { lat: 0, lng: 0 },
 			icon: {
 				path: google.maps.SymbolPath.CIRCLE,
-				scale: 5,
+				scale: 5
 			},
 			draggable: false,
 			title: 'Actual Location'
@@ -64,10 +66,10 @@ function initGame(data, status) {
 			icons: [
 				{
 					icon: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-					offset: "100%",
-				},
+					offset: '100%'
+				}
 			],
-			map: guessingMap,
+			map: guessingMap
 		});
 		line.setVisible(false);
 
@@ -76,7 +78,7 @@ function initGame(data, status) {
 		});
 
 		guessingMap.addListener('click', (mapsMouseEvent) => {
-			if (guessButton.innerHTML=="Guess"){
+			if (guessButton.innerHTML == 'Guess') {
 				marker.setPosition(mapsMouseEvent.latLng);
 				updateMarker();
 			}
@@ -101,6 +103,8 @@ function initGame(data, status) {
 			lat: data.location.latLng.lat(),
 			lng: data.location.latLng.lng()
 		};
+
+		ready = true;
 	} else {
 		console.log('Street View not found.');
 		window.initMap();
@@ -117,11 +121,14 @@ function goTo(loc) {
 }
 
 function updateMarker() {
-	info.innerHTML = 'Marker At: ' + marker.getPosition().lng() + ', ' + marker.getPosition().lat();
+	info.innerHTML = `Marker: {${marker.getPosition().lng()}, ${marker.getPosition().lat()}}`;
 }
 
 async function getScore() {
 	if (guessButton.innerHTML == 'Guess') {
+		if (!ready) {
+			return;
+		}
 		let params = new URLSearchParams({
 			targetLat: target.lat,
 			targetLng: target.lng,
@@ -129,45 +136,36 @@ async function getScore() {
 			markerLng: marker.getPosition().lng()
 		}).toString();
 		const score = await fetch('/getScore?' + params).then((res) => res.text());
-		info.innerHTML = 'Score: ' + score + ' / 5000';
-		markerCorrect.setPosition({lat: target.lat, lng: target.lng});
-		markerCorrect.setVisible(true)
-		marker.setDraggable(false);
-		line.setVisible(true)
-		line.setPath(
-			[
-				{lat: marker.getPosition().lat(), lng: marker.getPosition().lng()},
-				{lat: target.lat, lng: target.lng},
-			]
-		)
 		const round = await fetch('/getRound').then((res) => res.text());
-		if (round<5){
-			guessButton.innerHTML = 'Next';
+		if (round < 5) {
+			resetUI('Next', `Score: ${score} / 5000`);
+		} else {
+			resetUI('Finish', `Score: ${score} / 5000`);
 		}
-		else {
-			guessButton.innerHTML = 'Finish';
-		}
-	} else if (guessButton.innerHTML == 'Next'){
-		guessButton.innerHTML = 'Guess';
-		info.innerHTML = 'Marker At: 0,0';
-		marker.setDraggable(true);
-		markerCorrect.setVisible(false);
-		line.setVisible(false);
-		initMap();
-	}
-	else if (guessButton.innerHTML == 'Finish'){
-		guessButton.innerHTML = 'Restart';
+		markerCorrect.setVisible(true);
+		marker.setDraggable(false);
+		markerCorrect.setPosition({ lat: target.lat, lng: target.lng });
+		line.setVisible(true);
+		line.setPath([
+			{ lat: marker.getPosition().lat(), lng: marker.getPosition().lng() },
+			{ lat: target.lat, lng: target.lng }
+		]);
+	} else if (guessButton.innerHTML == 'Finish') {
 		const finalScore = await fetch('/getTotalScore').then((res) => res.text());
-		info.innerHTML = "Final Score: "+finalScore+" / 25000";
-		markerCorrect.setVisible(false);
-		line.setVisible(false);
-	}
-	else {
-		guessButton.innerHTML = 'Guess';
-		marker.setDraggable(true);
-		info.innerHTML = 'Marker At: 0,0';
+		resetUI('Restart', `Final Score: ${finalScore} / 25000`);
+	} else {
+		resetUI('Guess', 'Loading street view...');
+		ready = false;
 		initMap();
 	}
+}
+
+function resetUI(guessText, infoText) {
+	guessButton.innerHTML = guessText;
+	info.innerHTML = infoText;
+	marker.setDraggable(true);
+	markerCorrect.setVisible(false);
+	line.setVisible(false);
 }
 
 document.head.appendChild(script);
