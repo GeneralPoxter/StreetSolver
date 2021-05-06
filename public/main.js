@@ -8,6 +8,7 @@ let marker;
 let markerCorrect;
 let target;
 let line;
+let data;
 let ready = false;
 
 let info = document.getElementById('info');
@@ -104,6 +105,7 @@ function initGame(data, status) {
 			lng: data.location.latLng.lng()
 		};
 
+		sendTarget();
 		ready = true;
 	} else {
 		console.log('Street View not found.');
@@ -121,7 +123,18 @@ function goTo(loc) {
 }
 
 function updateMarker() {
-	info.innerHTML = `Marker: {${marker.getPosition().lng()}, ${marker.getPosition().lat()}}`;
+	info.innerHTML = `Marker: {${Math.round(marker.getPosition().lng() * 1000) / 1000}, ${Math.round(
+		marker.getPosition().lat() * 1000
+	) / 1000}}`;
+}
+
+async function sendTarget() {
+	let params = new URLSearchParams({
+		targetLat: target.lat,
+		targetLng: target.lng
+	}).toString();
+
+	fetch('/receiveTarget?' + params);
 }
 
 async function getScore() {
@@ -129,19 +142,21 @@ async function getScore() {
 		if (!ready) {
 			return;
 		}
+
 		let params = new URLSearchParams({
-			targetLat: target.lat,
-			targetLng: target.lng,
 			markerLat: marker.getPosition().lat(),
 			markerLng: marker.getPosition().lng()
 		}).toString();
-		const score = await fetch('/getScore?' + params).then((res) => res.text());
-		const round = await fetch('/getRound').then((res) => res.text());
-		if (round < 5) {
-			resetUI('Next', `Score: ${score} / 5000`);
+
+		data = await fetch('/getRoundData?' + params).then((res) => res.text()).then((res) => JSON.parse(res));
+
+		console.log(data.round);
+		if (data.round < 5) {
+			resetUI('Next', `Score: ${data.score} / 5000`);
 		} else {
-			resetUI('Finish', `Score: ${score} / 5000`);
+			resetUI('Finish', `Score: ${data.score} / 5000`);
 		}
+
 		markerCorrect.setVisible(true);
 		marker.setDraggable(false);
 		markerCorrect.setPosition({ lat: target.lat, lng: target.lng });
@@ -151,8 +166,7 @@ async function getScore() {
 			{ lat: target.lat, lng: target.lng }
 		]);
 	} else if (guessButton.innerHTML == 'Finish') {
-		const finalScore = await fetch('/getTotalScore').then((res) => res.text());
-		resetUI('Restart', `Final Score: ${finalScore} / 25000`);
+		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
 	} else {
 		resetUI('Guess', 'Loading street view...');
 		ready = false;

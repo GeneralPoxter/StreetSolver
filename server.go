@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -26,10 +27,14 @@ type Geojsontype struct {
 	Polygon     Polygon
 }
 
-var target Loc
-var marker Loc
-var round int
-var totalScore int
+type GameData struct {
+	Target     Loc `json:"target"`
+	Score      int `json:"score"`
+	TotalScore int `json:"totalScore"`
+	Round      int `json:"round"`
+}
+
+var game GameData
 
 // Maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
@@ -50,11 +55,10 @@ func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fileServer)
 	http.HandleFunc("/getLoc", getLoc)
-	http.HandleFunc("/getScore", getScore)
-	http.HandleFunc("/getRound", getRound)
-	http.HandleFunc("/getTotalScore", getTotalScore)
-	round = 0
-	totalScore = 0
+	http.HandleFunc("/receiveTarget", receiveTarget)
+	http.HandleFunc("/getRoundData", getRoundData)
+
+	resetGame()
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -71,6 +75,22 @@ func getPort() string {
 	return ":" + port
 }
 
+func resetGame() {
+	game = GameData{Loc{0, 0}, 0, 0, 0}
+}
+
+func parseQuery(query url.Values) (map[string]float64, error) {
+	values := make(map[string]float64)
+	for key := range query {
+		s, err := strconv.ParseFloat(query.Get(key), 64)
+		if err != nil {
+			return nil, err
+		}
+		values[key] = s
+	}
+	return values, nil
+}
+
 func getLoc(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/getLoc" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
@@ -82,19 +102,25 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	boundaryCheck := true
-	for boundaryCheck {
-		target = Loc{randRange(-80, 80), randRange(-180, 180)}
-		// TODO: Make a Poly that excludes oceans
-		boundaryCheck = false
-		/* Temporarily disable Maryland-only game
-		target = Loc{randRange(38, 40), randRange(-78, -75)}
-		if isLocInPoly(poly, target) {
-			boundaryCheck = false
-		} */
+	var candidate Loc
+	if (game.Target == Loc{0, 0}) {
+		boundaryCheck := true
+		for boundaryCheck {
+			/* World map too slow
+			// World map
+			candidate = Loc{randRange(-80, 80), randRange(-180, 180)}
+			// TODO: Make a Poly that excludes oceans
+			boundaryCheck = false */
+			candidate = Loc{randRange(38, 40), randRange(-78, -75)}
+			if isLocInPoly(poly, candidate) {
+				boundaryCheck = false
+			}
+		}
+	} else {
+		candidate = game.Target
 	}
 
-	js, err := json.Marshal(target)
+	js, err := json.Marshal(candidate)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -125,8 +151,8 @@ func isLocInPoly(poly Polygon, location Loc) bool {
 	return inside
 }
 
-func getScore(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getScore" {
+func receiveTarget(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/receiveTarget" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
 	}
@@ -136,30 +162,49 @@ func getScore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	round++
-	if round == 6 {
-		round = 1
-		totalScore = 0
-	}
-	query := r.URL.Query()
-	values := make(map[string]float64)
-	for key, _ := range query {
-		s, err := strconv.ParseFloat(query.Get(key), 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		values[key] = s
+	values, err := parseQuery(r.URL.Query())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	target = Loc{Lat: values["targetLat"], Lng: values["targetLng"]}
-	marker = Loc{Lat: values["markerLat"], Lng: values["markerLng"]}
+	game.Target = Loc{values["targetLat"], values["targetLng"]}
+}
 
-	scoreInt := calculateScore(marker, target)
-	totalScore += scoreInt
-	score := strconv.Itoa(scoreInt)
+func getRoundData(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getRoundData" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
 
-	fmt.Fprint(w, score)
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	values, err := parseQuery(r.URL.Query())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	marker := Loc{values["markerLat"], values["markerLng"]}
+	scoreInt := calculateScore(marker, game.Target)
+	game.Score = scoreInt
+	game.TotalScore += scoreInt
+	game.Round++
+
+	js, err := json.Marshal(game)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+
+	game.Target = Loc{0, 0}
+	if game.Round == 5 {
+		resetGame()
+	}
 }
 
 func calculateScore(loc1, loc2 Loc) int {
@@ -174,35 +219,4 @@ func calculateScore(loc1, loc2 Loc) int {
 	score := int(math.Round(5000 * math.Pow(math.E, (-distance/2000))))
 
 	return score
-}
-
-func getRound(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getRound" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-	roundReturn := strconv.Itoa(round)
-
-	fmt.Fprint(w, roundReturn)
-
-}
-
-func getTotalScore(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getTotalScore" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-	totalScoreReturn := strconv.Itoa(totalScore)
-
-	fmt.Fprint(w, totalScoreReturn)
 }
