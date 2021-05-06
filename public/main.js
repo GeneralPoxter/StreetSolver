@@ -1,8 +1,7 @@
 let script = document.createElement('script');
-script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyBIwzALxUPNbatRBj3Xi1Uhp0fFzwWNBkE&callback=initMap';
+script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap`;
 script.async = true;
 
-let map;
 let panorama;
 let marker;
 let markerCorrect;
