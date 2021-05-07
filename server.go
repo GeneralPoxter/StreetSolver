@@ -11,6 +11,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	geojson "github.com/paulmach/go.geojson"
 )
 
 type Loc struct {
@@ -20,11 +22,8 @@ type Loc struct {
 
 type Polygon []Loc
 
-type Geojsontype struct {
-	Type        string
-	Coordinates json.RawMessage
-	Loc         Loc
-	Polygon     Polygon
+type tagger struct {
+	Tags []string `json:"tags"`
 }
 
 type GameData struct {
@@ -57,6 +56,9 @@ func main() {
 	http.HandleFunc("/getLoc", getLoc)
 	http.HandleFunc("/receiveTarget", receiveTarget)
 	http.HandleFunc("/getRoundData", getRoundData)
+
+	g, _ := NewGeoJSON(Loc{0, 0}, []string{"foo", "bar"})
+	fmt.Println(string(g))
 
 	resetGame()
 
@@ -128,6 +130,13 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+}
+
+func NewGeoJSON(loc Loc, tags []string) ([]byte, error) {
+	featureCollection := geojson.NewFeatureCollection()
+	feature := geojson.NewPointFeature([]float64{loc.Lng, loc.Lat})
+	featureCollection.AddFeature(feature)
+	return featureCollection.MarshalJSON()
 }
 
 func randRange(min, max float64) float64 {
@@ -216,7 +225,8 @@ func calculateScore(loc1, loc2 Loc) int {
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	distance := 6371e3 * c / 1000
-	score := int(math.Round(5000 * math.Pow(math.E, (-distance/2000))))
+	//Adjusted score for smaller area of MD
+	score := int(math.Round(5000 * math.Pow(math.E, (-distance/10))))
 
 	return score
 }
