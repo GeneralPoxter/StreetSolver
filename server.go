@@ -35,6 +35,9 @@ type GameData struct {
 
 var game GameData
 
+//const Distance_Factor = 2000
+const Distance_Factor = 10
+
 // Maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
 	{39.72322905639499, -75.78820613062912},
@@ -60,7 +63,7 @@ func main() {
 	g, _ := NewGeoJSON(Loc{0, 0}, []string{"foo", "bar"})
 	fmt.Println(string(g))
 
-	resetGame()
+	game = GameData{Loc{0, 0}, 0, 0, 0}
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -75,10 +78,6 @@ func getPort() string {
 	}
 	fmt.Println("Starting server at port " + port)
 	return ":" + port
-}
-
-func resetGame() {
-	game = GameData{Loc{0, 0}, 0, 0, 0}
 }
 
 func parseQuery(query url.Values) (map[string]float64, error) {
@@ -108,11 +107,11 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	if (game.Target == Loc{0, 0}) {
 		boundaryCheck := true
 		for boundaryCheck {
-			/* World map too slow
-			// World map
+			/* // World map
 			candidate = Loc{randRange(-80, 80), randRange(-180, 180)}
 			// TODO: Make a Poly that excludes oceans
 			boundaryCheck = false */
+
 			candidate = Loc{randRange(38, 40), randRange(-78, -75)}
 			if isLocInPoly(poly, candidate) {
 				boundaryCheck = false
@@ -190,6 +189,11 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if (game.Target == Loc{0, 0}) {
+		http.Error(w, "Next round's location not determined.", http.StatusInternalServerError)
+		return
+	}
+
 	values, err := parseQuery(r.URL.Query())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -212,7 +216,7 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 
 	game.Target = Loc{0, 0}
 	if game.Round == 5 {
-		resetGame()
+		game = GameData{Loc{0, 0}, 0, 0, 0}
 	}
 }
 
@@ -226,7 +230,7 @@ func calculateScore(loc1, loc2 Loc) int {
 
 	distance := 6371e3 * c / 1000
 	//Adjusted score for smaller area of MD
-	score := int(math.Round(5000 * math.Pow(math.E, (-distance/10))))
+	score := int(math.Round(5000 * math.Pow(math.E, (-distance/Distance_Factor))))
 
 	return score
 }
