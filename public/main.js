@@ -13,6 +13,9 @@ let ready = false;
 let info = document.getElementById('info');
 let guessButton = document.getElementById('guess');
 let returnButton = document.getElementById('return');
+let instructButton = document.getElementById('instruct');
+let instructModal = document.getElementById('instructions');
+let closeInstruct = document.getElementById('closer');
 
 window.initMap = async function() {
 	const sv = new google.maps.StreetViewService();
@@ -98,6 +101,20 @@ function initGame(data, status) {
 		};
 
 		guessButton.onclick = getScore;
+
+		instructButton.onclick = function(){
+			instructModal.style.display = "block";
+		}
+
+		closeInstruct.onclick = function(){
+			instructModal.style.display = "none";
+		}
+		/*
+		window.onclick = function(event){
+			if (event.target == instructModal){
+				instructModal.style.display = "none";
+			}
+		}*/
 
 		target = {
 			lat: data.location.latLng.lat(),

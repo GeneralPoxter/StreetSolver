@@ -22,6 +22,16 @@
         <div id="info">Loading street view...</div>
         <button id="guess">Guess</button>
         <button id="return">Return</button>
+        <button id="instruct">Instructions</button>
+    </div>
+    <div id = "instructions" class="modal">
+        <div id="instructionsBox" class="modal-content">
+            <span id="closer" class="close">&times;</span>
+            <p>
+                For each round, use the Google StreetView interface to navigate the surroundings of the starting position. Then, guess where the starting position is by clicking or dragging the marker on the world map. To return to the starting position, use the "Return" button, and to conclude the round, click "Guess". Each round is scored out of 5000 based on proximity, for a 5-round game totaling 25000 points.  
+                Game round progress is tracked even after the user quits the frontend, as long as the server itself remains running.
+            </p>
+        </div>
     </div>
 </body>
 
