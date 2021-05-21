@@ -23,7 +23,6 @@ window.initMap = async function() {
 		{
 			location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
 			source: google.maps.StreetViewPreference.OUTDOOR
-			// preference: google.maps.StreetViewPreference.BEST
 		},
 		initGame
 	);
@@ -102,19 +101,13 @@ function initGame(data, status) {
 
 		guessButton.onclick = getScore;
 
-		instructButton.onclick = function(){
-			instructModal.style.display = "block";
-		}
+		instructButton.onclick = function() {
+			instructModal.style.display = 'block';
+		};
 
-		closeInstruct.onclick = function(){
-			instructModal.style.display = "none";
-		}
-		/*
-		window.onclick = function(event){
-			if (event.target == instructModal){
-				instructModal.style.display = "none";
-			}
-		}*/
+		closeInstruct.onclick = function() {
+			instructModal.style.display = 'none';
+		};
 
 		target = {
 			lat: data.location.latLng.lat(),

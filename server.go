@@ -35,7 +35,7 @@ type GameData struct {
 
 var game GameData
 
-var Distance_Factor = 2000
+var distanceFactor = 2000
 
 // Maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
@@ -239,7 +239,7 @@ func updateDistanceFactor(poly Polygon) {
 			lngMax = poly[i].Lng
 		}
 	}
-	Distance_Factor = int(2 * (lngMax - lngMin) * (latMax - latMin))
+	distanceFactor = int(2 * (lngMax - lngMin) * (latMax - latMin))
 }
 
 func calculateScore(loc1, loc2 Loc) int {
@@ -251,7 +251,7 @@ func calculateScore(loc1, loc2 Loc) int {
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	distance := 6371e3 * c / 1000
-	score := int(math.Round(5000 * math.Pow(math.E, (-distance/float64(Distance_Factor)))))
+	score := int(math.Round(5000 * math.Pow(math.E, (-distance/float64(distanceFactor)))))
 
 	return score
 }
