@@ -35,8 +35,7 @@ type GameData struct {
 
 var game GameData
 
-//const Distance_Factor = 2000
-const Distance_Factor = 10
+var Distance_Factor = 2000
 
 // Maryland
 var poly = []Loc{{39.72108607946068, -79.47666224600735},
@@ -199,6 +198,9 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	//Adjusted score for smaller area of MD
+	updateDistanceFactor(poly)
+
 	marker := Loc{values["markerLat"], values["markerLng"]}
 	scoreInt := calculateScore(marker, game.Target)
 	game.Score = scoreInt
@@ -220,6 +222,26 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func updateDistanceFactor(poly Polygon) {
+	latMin, latMax := poly[0].Lat, poly[0].Lng
+	lngMin, lngMax := poly[0].Lng, poly[0].Lng
+	for i := 1; i < len(poly); i++ {
+		if poly[i].Lat < latMin {
+			latMin = poly[i].Lat
+		}
+		if poly[i].Lat > latMax {
+			latMax = poly[i].Lat
+		}
+		if poly[i].Lng < lngMin {
+			lngMin = poly[i].Lng
+		}
+		if poly[i].Lng > lngMax {
+			lngMax = poly[i].Lng
+		}
+	}
+	Distance_Factor = int(2 * (lngMax - lngMin) * (latMax - latMin))
+}
+
 func calculateScore(loc1, loc2 Loc) int {
 	latRad1 := loc1.Lat * math.Pi / 180
 	latRad2 := loc2.Lat * math.Pi / 180
@@ -229,8 +251,7 @@ func calculateScore(loc1, loc2 Loc) int {
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	distance := 6371e3 * c / 1000
-	//Adjusted score for smaller area of MD
-	score := int(math.Round(5000 * math.Pow(math.E, (-distance/Distance_Factor))))
+	score := int(math.Round(5000 * math.Pow(math.E, (-distance/float64(Distance_Factor)))))
 
 	return score
 }
