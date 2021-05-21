@@ -1,6 +1,6 @@
 # StreetSolver
 
-Geographic discovery game based off of GeoGuessr, not limited by API quotas. Made for Guided Research B: Future of Programming Languages.
+Geographic discovery game based off of GeoGuessr, but completely free. Made for Guided Research B: Future of Programming Languages.
 
 ## Usage
 ### Setup
@@ -10,7 +10,7 @@ go run server.go
 ```
 Port can be specified with the environment variable PORT.
 
-By default, the game uses the public Maps JavaScript API Key, which only works for localhosts and certain URLs. This key is updated occassionally, so expired keys can be replaced with the one found [here](https://jsfiddle.net/api/post/library/pure/). To replace the API key with a personal API key so the game can be hosted on services like Heroku, replace the value of `API_KEY` in `src/config.js` with the desired key.
+By default, the game uses Google's public Maps JavaScript API Key, which only works for localhosts and specific URLs. This key is changed occassionally, so expired keys can be replaced with the one found [here](https://github.com/googlemaps/js-samples/blob/08d6e630e8baa89d9fef856d9596258b9550293f/dist/samples/add-map/index.html#L58). To replace the API key with a personal API key so the game can be hosted on services like Heroku, replace the value of `API_KEY` in `src/config.js` with the desired key.
 
 ### Game
 Navigate to the localhost port to play on the StreetSolver frontend.  
