@@ -16,6 +16,8 @@ let returnButton = document.getElementById('return');
 let instructButton = document.getElementById('instruct');
 let instructModal = document.getElementById('instructions');
 let closeInstruct = document.getElementById('closer');
+let highscore = document.getElementById('highscore');
+//TODO: Make it so that the highscore from the previous games shows up immediately if you close and re-open window 
 
 window.initMap = async function() {
 	const sv = new google.maps.StreetViewService();
@@ -176,6 +178,7 @@ async function getScore() {
 		]);
 	} else if (guessButton.innerHTML == 'Finish') {
 		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
+		highscore.innerHTML = "Your High Score: "+ data.highScore;
 	} else {
 		resetUI('Guess', 'Loading street view...');
 		ready = false;

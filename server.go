@@ -31,6 +31,7 @@ type GameData struct {
 	Score      int `json:"score"`
 	TotalScore int `json:"totalScore"`
 	Round      int `json:"round"`
+	HighScore  int `json:"highScore"`
 }
 
 var game GameData
@@ -62,7 +63,7 @@ func main() {
 	g, _ := NewGeoJSON(Loc{0, 0}, []string{"foo", "bar"})
 	fmt.Println(string(g))
 
-	game = GameData{Loc{0, 0}, 0, 0, 0}
+	game = GameData{Loc{0, 0}, 0, 0, 0, 0}
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -206,6 +207,9 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 	game.Score = scoreInt
 	game.TotalScore += scoreInt
 	game.Round++
+	if game.Round == 5 && game.HighScore < game.TotalScore {
+		game.HighScore = game.TotalScore
+	}
 
 	js, err := json.Marshal(game)
 	if err != nil {
@@ -218,7 +222,10 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 
 	game.Target = Loc{0, 0}
 	if game.Round == 5 {
-		game = GameData{Loc{0, 0}, 0, 0, 0}
+		if game.HighScore < game.TotalScore {
+			game.HighScore = game.TotalScore
+		}
+		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore}
 	}
 }
 
