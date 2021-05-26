@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/joho/godotenv"
 	geojson "github.com/paulmach/go.geojson"
 )
 
@@ -56,6 +57,7 @@ var poly = []Loc{{39.72108607946068, -79.47666224600735},
 func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fileServer)
+	http.HandleFunc("/getKey", getKey)
 	http.HandleFunc("/getLoc", getLoc)
 	http.HandleFunc("/receiveTarget", receiveTarget)
 	http.HandleFunc("/getRoundData", getRoundData)
@@ -70,14 +72,37 @@ func main() {
 	}
 }
 
+func getEnv(key string) string {
+	if err := godotenv.Load(".env"); err != nil {
+		fmt.Println("INFO: .env file not found")
+		return ""
+	}
+
+	return os.Getenv(key)
+}
+
 func getPort() string {
-	port := os.Getenv("PORT")
+	port := getEnv("PORT")
 	if port == "" {
 		port = "8080"
 		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
 	}
 	fmt.Println("Starting server at port " + port)
 	return ":" + port
+}
+
+func getKey(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getKey" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	fmt.Fprintf(w, getEnv("API_KEY"))
 }
 
 func parseQuery(query url.Values) (map[string]float64, error) {

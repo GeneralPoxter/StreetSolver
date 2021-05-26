@@ -1,7 +1,3 @@
-let script = document.createElement('script');
-script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&callback=initMap`;
-script.async = true;
-
 let panorama;
 let marker;
 let markerCorrect;
@@ -17,17 +13,25 @@ let instructButton = document.getElementById('instruct');
 let instructModal = document.getElementById('instructions');
 let closeInstruct = document.getElementById('closer');
 let highscore = document.getElementById('highscore');
-//TODO: Make it so that the highscore from the previous games shows up immediately if you close and re-open window 
+//TODO: Make it so that the highscore from the previous games shows up immediately if you close and re-open window
 
-window.initMap = async function() {
-	const sv = new google.maps.StreetViewService();
-	sv.getPanorama(
-		{
-			location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
-			source: google.maps.StreetViewPreference.OUTDOOR
-		},
-		initGame
-	);
+let script = document.createElement('script');
+
+window.onload = async function() {
+	const key = await fetch('/getKey').then((res) => res.text());
+	script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initMap`;
+	script.async = true;
+
+	window.initMap = async function() {
+		const sv = new google.maps.StreetViewService();
+		sv.getPanorama(
+			{
+				location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
+				source: google.maps.StreetViewPreference.OUTDOOR
+			},
+			initGame
+		);
+	};
 };
 
 function initGame(data, status) {
@@ -178,7 +182,7 @@ async function getScore() {
 		]);
 	} else if (guessButton.innerHTML == 'Finish') {
 		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
-		highscore.innerHTML = "Your High Score: "+ data.highScore;
+		highscore.innerHTML = 'Your High Score: ' + data.highScore;
 	} else {
 		resetUI('Guess', 'Loading street view...');
 		ready = false;
