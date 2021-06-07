@@ -61,6 +61,7 @@ func main() {
 	http.HandleFunc("/getLoc", getLoc)
 	http.HandleFunc("/receiveTarget", receiveTarget)
 	http.HandleFunc("/getRoundData", getRoundData)
+	http.HandleFunc("/getHighScore", getHighScore)
 
 	g, _ := NewGeoJSON(Loc{0, 0}, []string{"foo", "bar"})
 	fmt.Println(string(g))
@@ -247,9 +248,6 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 
 	game.Target = Loc{0, 0}
 	if game.Round == 5 {
-		if game.HighScore < game.TotalScore {
-			game.HighScore = game.TotalScore
-		}
 		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore}
 	}
 }
@@ -272,6 +270,28 @@ func updateDistanceFactor(poly Polygon) {
 		}
 	}
 	distanceFactor = int(2 * (lngMax - lngMin) * (latMax - latMin))
+}
+
+func getHighScore(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getHighScore" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	js, err := json.Marshal(game.HighScore)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+
 }
 
 func calculateScore(loc1, loc2 Loc) int {

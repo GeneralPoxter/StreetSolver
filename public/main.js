@@ -24,6 +24,8 @@ window.onload = async function() {
 
 	window.initMap = async function() {
 		const sv = new google.maps.StreetViewService();
+		highscore.innerHTML = 'Your High Score: ' + await fetch('/getHighScore').then((res) => res.text()).then((res) => JSON.parse(res));
+
 		sv.getPanorama(
 			{
 				location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
