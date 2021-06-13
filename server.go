@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	geojson "github.com/paulmach/go.geojson"
 )
 
 type Loc struct {
@@ -23,50 +22,87 @@ type Loc struct {
 
 type Polygon []Loc
 
-type tagger struct {
-	Tags []string `json:"tags"`
-}
-
 type GameData struct {
-	Target     Loc `json:"target"`
-	Score      int `json:"score"`
-	TotalScore int `json:"totalScore"`
-	Round      int `json:"round"`
-	HighScore  int `json:"highScore"`
+	Target     Loc    `json:"target"`
+	Score      int    `json:"score"`
+	TotalScore int    `json:"totalScore"`
+	Round      int    `json:"round"`
+	HighScore  int    `json:"highScore"`
+	Region     string `json:"region"`
 }
 
 var game GameData
 
-var distanceFactor = 2000
+var distanceFactor float64
 
-// Maryland
-var poly = []Loc{{39.72108607946068, -79.47666224600735},
-	{39.72322905639499, -75.78820613062912},
-	{38.46024225250412, -75.69355492964675},
-	{38.45107088128103, -75.04934375153289},
-	{38.02838839691087, -75.24220525055418},
-	{38.40467596253332, -77.04430644149704},
-	{38.90229143401203, -76.90148419419953},
-	{39.00054556187369, -77.04155988235236},
-	{39.22404469392229, -77.45286054814271},
-	{39.699283697533666, -77.93533222975897},
-	{39.69542029957551, -78.18507807210698},
-	{39.64867115193669, -78.76619476351625},
-	{39.20622885088143, -79.48645056628894}}
+var defaultRegion = "United States"
+
+var radii = map[string]int{
+	"Maryland":      50,
+	"United States": 100,
+	"World":         1000,
+}
+
+var borders = map[string][]Loc{
+	"Maryland": {
+		{38, -78},
+		{40, -75},
+	},
+	"United States": {
+		{25, -125},
+		{50, -60},
+	},
+	"World": {
+		{-80, -180},
+		{80, 180},
+	},
+}
+
+var polys = map[string][]Loc{
+	"Maryland": {
+		{39.72108607946068, -79.47666224600735},
+		{39.72322905639499, -75.78820613062912},
+		{38.46024225250412, -75.69355492964675},
+		{38.45107088128103, -75.04934375153289},
+		{38.02838839691087, -75.24220525055418},
+		{38.40467596253332, -77.04430644149704},
+		{38.90229143401203, -76.90148419419953},
+		{39.00054556187369, -77.04155988235236},
+		{39.22404469392229, -77.45286054814271},
+		{39.699283697533666, -77.93533222975897},
+		{39.69542029957551, -78.18507807210698},
+		{39.64867115193669, -78.76619476351625},
+		{39.20622885088143, -79.48645056628894},
+	},
+	"United States": {
+		{49.00501224324328, -123.33937857614913},
+		{48.999349663558, -95.15417471469046},
+		{46.45274297417163, -84.48370346783305},
+		{41.532978006779395, -82.74786331314247},
+		{45.866805771566554, -67.92181360743781},
+		{30.50989864735576, -81.48443541811491},
+		{25.403251595341164, -80.39678902598565},
+		{30.486232716490345, -83.76959156032217},
+		{29.027031987602395, -96.5357054240675},
+		{32.1473984353643, -106.31353783259205},
+		{32.90510566423088, -119.0363490137464},
+	},
+	"World": {},
+}
 
 func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fileServer)
+	http.HandleFunc("/getData", getData)
 	http.HandleFunc("/getKey", getKey)
 	http.HandleFunc("/getLoc", getLoc)
+	http.HandleFunc("/getRadius", getRadius)
 	http.HandleFunc("/receiveTarget", receiveTarget)
 	http.HandleFunc("/getRoundData", getRoundData)
 	http.HandleFunc("/getHighScore", getHighScore)
+	http.HandleFunc("/restart", restart)
 
-	g, _ := NewGeoJSON(Loc{0, 0}, []string{"foo", "bar"})
-	fmt.Println(string(g))
-
-	game = GameData{Loc{0, 0}, 0, 0, 0, 0}
+	game = GameData{Loc{0, 0}, 0, 0, 0, 0, defaultRegion}
 
 	if err := http.ListenAndServe(getPort(), nil); err != nil {
 		log.Fatal(err)
@@ -90,6 +126,18 @@ func getPort() string {
 	}
 	fmt.Println("Starting server at port " + port)
 	return ":" + port
+}
+
+func getData(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getKey" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
 }
 
 func getKey(w http.ResponseWriter, r *http.Request) {
@@ -133,13 +181,12 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	if (game.Target == Loc{0, 0}) {
 		boundaryCheck := true
 		for boundaryCheck {
-			/* // World map
-			candidate = Loc{randRange(-80, 80), randRange(-180, 180)}
-			// TODO: Make a Poly that excludes oceans
-			boundaryCheck = false */
+			candidate = Loc{
+				randRange(borders[game.Region][0].Lat, borders[game.Region][1].Lat),
+				randRange(borders[game.Region][0].Lng, borders[game.Region][1].Lng),
+			}
 
-			candidate = Loc{randRange(38, 40), randRange(-78, -75)}
-			if isLocInPoly(poly, candidate) {
+			if game.Region == "World" || isLocInPoly(polys[game.Region], candidate) {
 				boundaryCheck = false
 			}
 		}
@@ -157,11 +204,25 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
-func NewGeoJSON(loc Loc, tags []string) ([]byte, error) {
-	featureCollection := geojson.NewFeatureCollection()
-	feature := geojson.NewPointFeature([]float64{loc.Lng, loc.Lat})
-	featureCollection.AddFeature(feature)
-	return featureCollection.MarshalJSON()
+func getRadius(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getRadius" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	js, err := json.Marshal(radii[game.Region])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
 func randRange(min, max float64) float64 {
@@ -225,8 +286,11 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	//Adjusted score for smaller area of MD
-	updateDistanceFactor(poly)
+	if game.Region == "World" {
+		distanceFactor = math.Pow((2000 / 14), 2)
+	} else {
+		updateDistanceFactor(polys[game.Region])
+	}
 
 	marker := Loc{values["markerLat"], values["markerLng"]}
 	scoreInt := calculateScore(marker, game.Target)
@@ -248,7 +312,7 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 
 	game.Target = Loc{0, 0}
 	if game.Round == 5 {
-		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore}
+		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore, defaultRegion}
 	}
 }
 
@@ -269,7 +333,8 @@ func updateDistanceFactor(poly Polygon) {
 			lngMax = poly[i].Lng
 		}
 	}
-	distanceFactor = int(2 * (lngMax - lngMin) * (latMax - latMin))
+	distanceFactor = (lngMax - lngMin) * (latMax - latMin)
+	fmt.Println(distanceFactor)
 }
 
 func getHighScore(w http.ResponseWriter, r *http.Request) {
@@ -291,7 +356,6 @@ func getHighScore(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
-
 }
 
 func calculateScore(loc1, loc2 Loc) int {
@@ -303,7 +367,28 @@ func calculateScore(loc1, loc2 Loc) int {
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 
 	distance := 6371e3 * c / 1000
-	score := int(math.Round(5000 * math.Pow(math.E, (-distance/float64(distanceFactor)))))
+	score := int(math.Round(5000 * math.Pow(math.E, (-distance/(float64(14)*math.Sqrt(distanceFactor))))))
 
 	return score
+}
+
+func restart(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/restart" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+
+	if r.Method != "GET" {
+		http.Error(w, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
+	region := r.URL.Query().Get("region")
+	if _, exist := polys[region]; exist {
+		game = GameData{Loc{0, 0}, 0, 0, 0, 0, region}
+		fmt.Fprintf(w, "OK")
+		return
+	}
+
+	fmt.Fprintf(w, "Region not found")
 }
