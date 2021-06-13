@@ -12,9 +12,9 @@ let returnButton = document.getElementById('return');
 let instructButton = document.getElementById('instruct');
 let instructModal = document.getElementById('instructions');
 let closeInstruct = document.getElementById('closer');
+let restartButton = document.getElementById('restart');
 let highscore = document.getElementById('highscore');
-//TODO: Make it so that the highscore from the previous games shows up immediately if you close and re-open window
-
+let region = document.getElementById('regions');
 let script = document.createElement('script');
 
 window.onload = async function() {
@@ -24,12 +24,13 @@ window.onload = async function() {
 
 	window.initMap = async function() {
 		const sv = new google.maps.StreetViewService();
-		highscore.innerHTML = 'Your High Score: ' + await fetch('/getHighScore').then((res) => res.text()).then((res) => JSON.parse(res));
+		highscore.innerHTML = `Your High Score: ${await fetch('/getHighScore').then((res) => res.text()).then((res) => JSON.parse(res))}`;
 
 		sv.getPanorama(
 			{
 				location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
-				source: google.maps.StreetViewPreference.OUTDOOR
+				source: google.maps.StreetViewPreference.OUTDOOR,
+				radius: await fetch('/getRadius').then((res) => res.text()).then((res) => JSON.parse(res))
 			},
 			initGame
 		);
@@ -117,6 +118,8 @@ function initGame(data, status) {
 			instructModal.style.display = 'none';
 		};
 
+		restartButton.onclick = restart;
+
 		target = {
 			lat: data.location.latLng.lat(),
 			lng: data.location.latLng.lng()
@@ -145,6 +148,20 @@ function updateMarker() {
 	) / 1000}}`;
 }
 
+async function restart() {
+	let params = new URLSearchParams({
+		region: region.value
+	}).toString();
+
+	const status = await fetch('/restart?' + params).then((res) => res.text());
+
+	if (status === 'OK') {
+		resetUI('Guess', 'Loading street view...');
+		ready = false;
+		window.initMap();
+	}
+};
+
 async function sendTarget() {
 	let params = new URLSearchParams({
 		targetLat: target.lat,
@@ -167,12 +184,13 @@ async function getScore() {
 
 		data = await fetch('/getRoundData?' + params).then((res) => res.text()).then((res) => JSON.parse(res));
 
-		console.log(data.round);
 		if (data.round < 5) {
 			resetUI('Next', `Score: ${data.score} / 5000`);
 		} else {
 			resetUI('Finish', `Score: ${data.score} / 5000`);
 		}
+
+		region.value = data.region;
 
 		markerCorrect.setVisible(true);
 		marker.setDraggable(false);
@@ -184,11 +202,11 @@ async function getScore() {
 		]);
 	} else if (guessButton.innerHTML == 'Finish') {
 		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
-		highscore.innerHTML = 'Your High Score: ' + data.highScore;
+		highscore.innerHTML = `Your High Score: ${data.highScore}`;
 	} else {
 		resetUI('Guess', 'Loading street view...');
 		ready = false;
-		initMap();
+		window.initMap();
 	}
 }
 
