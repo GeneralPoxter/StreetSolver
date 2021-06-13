@@ -5,6 +5,8 @@ body {
 	margin: 0;
 	padding: 0;
 	overflow-x: hidden;
+	display: flex;
+	flex-direction: column;
 }
 
 #title {
@@ -16,6 +18,16 @@ body {
 
 #title img {
 	height: 50px;
+}
+
+#status {
+	font-family: "Trebuchet MS";
+	font-size: 25px;
+	text-align: right;
+	float: right;
+	height: 100%;
+	white-space: pre-line;
+	line-height: 0.7em;
 }
 
 #maps {
@@ -49,21 +61,6 @@ body {
 	flex-direction: row;
 }
 
-#info {
-	padding-left: 24px;
-	font-family: "Trebuchet MS";
-	font-size: 25px;
-}
-
-#highscore {
-	padding-right: 48px;
-	padding-top: 12px;
-	font-family: "Trebuchet MS";
-	font-size: 25px;
-	text-align: right;
-	float: right;
-}
-
 #interface button {
 	margin-right: 10px;
 	font-family: "Trebuchet MS";
@@ -74,14 +71,20 @@ body {
 	transition: background-color 0.2s, color 0.2s;
 }
 
-#guess {
-	margin-left: auto;
-}
-
 #interface button:hover {
 	cursor: pointer;
 	background-color: black;
 	color: white;
+}
+
+#guess {
+	margin-left: auto;
+}
+
+#info {
+	padding-left: 24px;
+	font-family: "Trebuchet MS";
+	font-size: 25px;
 }
 
 .modal {
@@ -121,23 +124,24 @@ body {
 	cursor: pointer;
 }
 
-#regions{
+#regions {
 	font-family: "Trebuchet MS";
 	background-color: white;
 	font-family: "Trebuchet MS";
 	font-size: 15px;
+	margin-right: 10px;
 }
 
-#regions option{
+#regions option {
 	position: absolute;
 }
 
-#regions option:hover{
+#regions option:hover {
 	color: white;
 	background-color: black;
 }
 
-#regionLabel{
+#regionLabel {
 	position: relative;
 	font-family: "Trebuchet MS";
 	font-size: 25px;

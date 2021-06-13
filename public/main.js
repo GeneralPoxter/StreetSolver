@@ -13,24 +13,26 @@ let instructButton = document.getElementById('instruct');
 let instructModal = document.getElementById('instructions');
 let closeInstruct = document.getElementById('closer');
 let restartButton = document.getElementById('restart');
-let highscore = document.getElementById('highscore');
+let status = document.getElementById('status');
 let region = document.getElementById('regions');
 let script = document.createElement('script');
 
 window.onload = async function() {
-	const key = await fetch('/getKey').then((res) => res.text());
+	const key = await fetch('/getVar?name=key').then((res) => res.text());
 	script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&callback=initMap`;
 	script.async = true;
 
 	window.initMap = async function() {
 		const sv = new google.maps.StreetViewService();
-		highscore.innerHTML = `Your High Score: ${await fetch('/getHighScore').then((res) => res.text()).then((res) => JSON.parse(res))}`;
+		status.innerHTML = `Round: ${await fetch('/getVar?name=round').then((res) => res.text())} \n
+			High score: ${await fetch('/getVar?name=highscore').then((res) => res.text())}`;
+		region.value = await fetch('/getVar?name=region').then((res) => res.text());
 
 		sv.getPanorama(
 			{
-				location: await fetch('/getLoc').then((res) => res.text()).then((res) => JSON.parse(res)),
+				location: await fetch('/getLoc').then((res) => res.json()),
 				source: google.maps.StreetViewPreference.OUTDOOR,
-				radius: await fetch('/getRadius').then((res) => res.text()).then((res) => JSON.parse(res))
+				radius: parseInt(await fetch('/getVar?name=radius').then((res) => res.text()))
 			},
 			initGame
 		);
@@ -148,29 +150,6 @@ function updateMarker() {
 	) / 1000}}`;
 }
 
-async function restart() {
-	let params = new URLSearchParams({
-		region: region.value
-	}).toString();
-
-	const status = await fetch('/restart?' + params).then((res) => res.text());
-
-	if (status === 'OK') {
-		resetUI('Guess', 'Loading street view...');
-		ready = false;
-		window.initMap();
-	}
-};
-
-async function sendTarget() {
-	let params = new URLSearchParams({
-		targetLat: target.lat,
-		targetLng: target.lng
-	}).toString();
-
-	fetch('/receiveTarget?' + params);
-}
-
 async function getScore() {
 	if (guessButton.innerHTML == 'Guess') {
 		if (!ready) {
@@ -182,7 +161,7 @@ async function getScore() {
 			markerLng: marker.getPosition().lng()
 		}).toString();
 
-		data = await fetch('/getRoundData?' + params).then((res) => res.text()).then((res) => JSON.parse(res));
+		data = await fetch('/getRoundData?' + params).then((res) => res.json());
 
 		if (data.round < 5) {
 			resetUI('Next', `Score: ${data.score} / 5000`);
@@ -202,7 +181,7 @@ async function getScore() {
 		]);
 	} else if (guessButton.innerHTML == 'Finish') {
 		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
-		highscore.innerHTML = `Your High Score: ${data.highScore}`;
+		status.innerHTML = `Game over \n High score: ${data.highScore}`;
 	} else {
 		resetUI('Guess', 'Loading street view...');
 		ready = false;
@@ -216,6 +195,29 @@ function resetUI(guessText, infoText) {
 	marker.setDraggable(true);
 	markerCorrect.setVisible(false);
 	line.setVisible(false);
+}
+
+async function restart() {
+	let params = new URLSearchParams({
+		region: region.value
+	}).toString();
+
+	const status = await fetch('/restart?' + params).then((res) => res.text());
+
+	if (status === 'OK') {
+		resetUI('Guess', 'Loading street view...');
+		ready = false;
+		window.initMap();
+	}
+}
+
+async function sendTarget() {
+	let params = new URLSearchParams({
+		targetLat: target.lat,
+		targetLng: target.lng
+	}).toString();
+
+	fetch('/receiveTarget?' + params);
 }
 
 document.head.appendChild(script);

@@ -93,13 +93,10 @@ var polys = map[string][]Loc{
 func main() {
 	fileServer := http.FileServer(http.Dir("./public"))
 	http.Handle("/", fileServer)
-	http.HandleFunc("/getData", getData)
-	http.HandleFunc("/getKey", getKey)
+	http.HandleFunc("/getVar", getVar)
 	http.HandleFunc("/getLoc", getLoc)
-	http.HandleFunc("/getRadius", getRadius)
 	http.HandleFunc("/receiveTarget", receiveTarget)
 	http.HandleFunc("/getRoundData", getRoundData)
-	http.HandleFunc("/getHighScore", getHighScore)
 	http.HandleFunc("/restart", restart)
 
 	game = GameData{Loc{0, 0}, 0, 0, 0, 0, defaultRegion}
@@ -128,20 +125,8 @@ func getPort() string {
 	return ":" + port
 }
 
-func getData(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getKey" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-}
-
-func getKey(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getKey" {
+func getVar(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/getVar" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
 	}
@@ -151,7 +136,30 @@ func getKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, getEnv("API_KEY"))
+	name := r.URL.Query().Get("name")
+	var value string
+
+	if name == "highscore" {
+		value = strconv.Itoa(game.HighScore)
+	}
+
+	if name == "key" {
+		value = getEnv("API_KEY")
+	}
+
+	if name == "radius" {
+		value = strconv.Itoa(radii[game.Region])
+	}
+
+	if name == "region" {
+		value = game.Region
+	}
+
+	if name == "round" {
+		value = strconv.Itoa(game.Round + 1)
+	}
+
+	fmt.Fprintf(w, value)
 }
 
 func parseQuery(query url.Values) (map[string]float64, error) {
@@ -195,27 +203,6 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 	}
 
 	js, err := json.Marshal(candidate)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
-}
-
-func getRadius(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getRadius" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-
-	js, err := json.Marshal(radii[game.Region])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -337,27 +324,6 @@ func updateDistanceFactor(poly Polygon) {
 	fmt.Println(distanceFactor)
 }
 
-func getHighScore(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/getHighScore" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-
-	if r.Method != "GET" {
-		http.Error(w, "Method is not supported.", http.StatusNotFound)
-		return
-	}
-
-	js, err := json.Marshal(game.HighScore)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
-}
-
 func calculateScore(loc1, loc2 Loc) int {
 	latRad1 := loc1.Lat * math.Pi / 180
 	latRad2 := loc2.Lat * math.Pi / 180
@@ -385,7 +351,7 @@ func restart(w http.ResponseWriter, r *http.Request) {
 
 	region := r.URL.Query().Get("region")
 	if _, exist := polys[region]; exist {
-		game = GameData{Loc{0, 0}, 0, 0, 0, 0, region}
+		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore, region}
 		fmt.Fprintf(w, "OK")
 		return
 	}
