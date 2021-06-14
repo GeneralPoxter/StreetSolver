@@ -25,9 +25,8 @@ body {
 	font-size: 25px;
 	text-align: right;
 	float: right;
-	height: 100%;
 	white-space: pre-line;
-	line-height: 0.7em;
+	line-height: 17px;
 }
 
 #maps {
@@ -37,8 +36,8 @@ body {
 }
 
 #guessingMap {
-	height: 240px;
-	width: 400px;
+	height: 300px;
+	width: 500px;
 	position: absolute;
 	top: 7vh;
 	right: 4vw;
@@ -61,6 +60,12 @@ body {
 	flex-direction: row;
 }
 
+#info {
+	padding-left: 24px;
+	font-family: "Trebuchet MS";
+	font-size: 25px;
+}
+
 #interface button {
 	margin-right: 10px;
 	font-family: "Trebuchet MS";
@@ -79,12 +84,6 @@ body {
 
 #guess {
 	margin-left: auto;
-}
-
-#info {
-	padding-left: 24px;
-	font-family: "Trebuchet MS";
-	font-size: 25px;
 }
 
 .modal {
@@ -134,11 +133,13 @@ body {
 	color: black;
 	-webkit-border-radius: 0;
 	border: 0;
+	border-radius: 0;
 	outline: 3px solid black;
 	outline-offset: -3px;
 }
 
-#regions:active, #regions:hover {
+#regions:active,
+#regions:hover {
 	cursor: pointer;
 	background-color: black;
 	color: white;

@@ -164,9 +164,9 @@ async function getScore() {
 		data = await fetch('/getRoundData?' + params).then((res) => res.json());
 
 		if (data.round < 5) {
-			resetUI('Next', `Score: ${data.score} / 5000`);
+			resetUI('Next', `Score: ${data.score} / 5000 (Total: ${data.totalScore})`);
 		} else {
-			resetUI('Finish', `Score: ${data.score} / 5000`);
+			resetUI('Finish', `Score: ${data.score} / 5000 (Total: ${data.totalScore})`);
 		}
 
 		region.value = data.region;
