@@ -299,7 +299,7 @@ func getRoundData(w http.ResponseWriter, r *http.Request) {
 
 	game.Target = Loc{0, 0}
 	if game.Round == 5 {
-		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore, defaultRegion}
+		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore, game.Region}
 	}
 }
 
@@ -351,9 +351,7 @@ func restart(w http.ResponseWriter, r *http.Request) {
 	region := r.URL.Query().Get("region")
 	if _, exist := polys[region]; exist {
 		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore, region}
-		fmt.Fprintf(w, "OK")
-		return
+	} else {
+		game = GameData{Loc{0, 0}, 0, 0, 0, game.HighScore, game.Region}
 	}
-
-	fmt.Fprintf(w, "Region not found")
 }

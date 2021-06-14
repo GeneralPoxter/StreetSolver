@@ -131,6 +131,7 @@ body {
 	padding: 4px;
 	background-color: white;
 	color: black;
+	transition: background-color 0.2s, color 0.2s;
 	-webkit-border-radius: 0;
 	border: 0;
 	border-radius: 0;

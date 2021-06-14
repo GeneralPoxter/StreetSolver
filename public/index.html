@@ -23,11 +23,11 @@
         <button id="guess">Guess</button>
         <button id="return">Return</button>
         <button id="instruct">Instructions</button>
-        <button id="restart">Restart</button>
         <select name="regions" id="regions">
             <option value="Maryland">Maryland</option>
             <option value="United States">United States</option>
             <option value="World">World</option>
+            <option value="">RESTART</option>
         </select>
     </div>
     <div id="instructions" class="modal">
@@ -36,8 +36,7 @@
             <p>
                 For each round, use the Google StreetView interface to navigate the surroundings of the starting
                 position.<br>
-                Select the play region with the rightmost dropdown menu followed by a game restart with the "Restart"
-                button.<br>
+                Select an option in the dropdown menu to restart the game in that play region (default region: United States).<br>
                 Guess where the starting position is by clicking or dragging the marker on the world map.<br>
                 To return to the starting position, use the "Return" button, and to submit the guess, use "Guess".<br>
                 Each round is scored out of 5000 based on proximity, for a 5-round game totaling 25000 points.<br>

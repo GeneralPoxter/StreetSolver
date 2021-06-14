@@ -13,7 +13,7 @@ Environment variables `PORT` and `API_KEY` can be modified in the `.env` file. B
 
 ### Game
 For each round, use the Google StreetView interface to navigate the surroundings of the starting position.
-Select the play region with the rightmost dropdown menu followed by a game restart with the "Restart" button. 
+Select an option in the dropdown menu to restart the game in that play region (default region: United States).
 Guess where the starting position is by clicking or dragging the marker on the world map.
 To return to the starting position, use the "Return" button, and to submit the guess, use "Guess".
 Each round is scored out of 5000 based on proximity, for a 5-round game totaling 25000 points.  
