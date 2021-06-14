@@ -14,6 +14,7 @@ let instructModal = document.getElementById('instructions');
 let closeInstruct = document.getElementById('closer');
 let status = document.getElementById('status');
 let regions = document.getElementById('regions');
+let options = regions.options;
 let script = document.createElement('script');
 
 window.onload = async function() {
@@ -25,12 +26,12 @@ window.onload = async function() {
 		status.innerHTML = `Round: ${await fetch('/getVar?name=round').then((res) => res.text())} \n
 			High score: ${await fetch('/getVar?name=highscore').then((res) => res.text())}`;
 		regions.value = await fetch('/getVar?name=region').then((res) => res.text());
-		for (var i = 0; i < regions.options.length; i++) {
-			var option = regions.options[i];
-			if (option.value == regions.value) {
-				option.style.display = 'none';
+		options[options.length - 1].innerHTML = regions.value;
+		for (let i = 0; i < options.length; i++) {
+			if (options[i].value == regions.value) {
+				options[i].style.display = 'none';
 			} else {
-				option.style.display = 'block';
+				options[i].style.display = 'block';
 			}
 		}
 
@@ -39,7 +40,7 @@ window.onload = async function() {
 			{
 				location: await fetch('/getLoc').then((res) => res.json()),
 				radius: parseInt(await fetch('/getVar?name=radius').then((res) => res.text())),
-				source: google.maps.StreetViewPreference.OUTDOOR
+				source: google.maps.StreetViewSource.OUTDOOR
 			},
 			initGame
 		);
@@ -71,16 +72,16 @@ function initGame(data, status) {
 		updateMarker();
 
 		markerCorrect = new google.maps.Marker({
-			map: guessingMap,
 			position: { lat: 0, lng: 0 },
 			icon: {
 				path: google.maps.SymbolPath.CIRCLE,
 				scale: 5
 			},
 			draggable: false,
-			title: 'Actual Location'
+			map: guessingMap,
+			title: 'Actual Location',
+			visible: false
 		});
-		markerCorrect.setVisible(false);
 
 		line = new google.maps.Polyline({
 			icons: [
@@ -89,9 +90,9 @@ function initGame(data, status) {
 					offset: '100%'
 				}
 			],
-			map: guessingMap
+			map: guessingMap,
+			visible: false
 		});
-		line.setVisible(false);
 
 		google.maps.event.addListener(marker, 'dragend', function() {
 			updateMarker();
@@ -128,7 +129,6 @@ function initGame(data, status) {
 		};
 
 		regions.onchange = restart;
-		
 
 		target = {
 			lat: data.location.latLng.lat(),
@@ -138,9 +138,10 @@ function initGame(data, status) {
 		sendTarget();
 		ready = true;
 	} else {
-		console.log('Street View not found.');
 		window.initMap();
 	}
+
+	console.clear();
 }
 
 function goTo(loc) {
@@ -153,9 +154,8 @@ function goTo(loc) {
 }
 
 function updateMarker() {
-	info.innerHTML = `Marker: {${Math.round(marker.getPosition().lng() * 1000) / 1000}, ${Math.round(
-		marker.getPosition().lat() * 1000
-	) / 1000}}`;
+	info.innerHTML = `Marker: {${Math.round(marker.getPosition().lat() * 1000) / 1000}, 
+		${Math.round(marker.getPosition().lng() * 1000) / 1000}}`;
 }
 
 async function getScore() {
@@ -188,6 +188,7 @@ async function getScore() {
 	} else if (guessButton.innerHTML == 'Finish') {
 		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
 		status.innerHTML = `Game over \n\n High score: ${data.highScore}`;
+		marker.setDraggable(false);
 	} else if (guessButton.innerHTML == 'Restart') {
 		restart();
 	} else {

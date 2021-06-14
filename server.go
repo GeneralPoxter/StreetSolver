@@ -43,7 +43,7 @@ var radii = map[string]int{
 	"World":         1000,
 }
 
-var borders = map[string][]Loc{
+var corners = map[string]Polygon{
 	"Maryland": {
 		{38, -78},
 		{40, -75},
@@ -53,12 +53,12 @@ var borders = map[string][]Loc{
 		{50, -60},
 	},
 	"World": {
-		{-80, -180},
-		{80, 180},
+		{-75, -180},
+		{75, 180},
 	},
 }
 
-var polys = map[string][]Loc{
+var polys = map[string]Polygon{
 	"Maryland": {
 		{39.72108607946068, -79.47666224600735},
 		{39.72322905639499, -75.78820613062912},
@@ -159,7 +159,7 @@ func getVar(w http.ResponseWriter, r *http.Request) {
 		value = strconv.Itoa(game.Round + 1)
 	}
 
-	fmt.Fprintf(w, value)
+	fmt.Fprint(w, value)
 }
 
 func parseQuery(query url.Values) (map[string]float64, error) {
@@ -190,8 +190,8 @@ func getLoc(w http.ResponseWriter, r *http.Request) {
 		boundaryCheck := true
 		for boundaryCheck {
 			candidate = Loc{
-				randRange(borders[game.Region][0].Lat, borders[game.Region][1].Lat),
-				randRange(borders[game.Region][0].Lng, borders[game.Region][1].Lng),
+				randRange(corners[game.Region][0].Lat, corners[game.Region][1].Lat),
+				randRange(corners[game.Region][0].Lng, corners[game.Region][1].Lng),
 			}
 
 			if game.Region == "World" || isLocInPoly(polys[game.Region], candidate) {
