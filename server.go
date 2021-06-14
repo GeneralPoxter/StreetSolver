@@ -321,7 +321,6 @@ func updateDistanceFactor(poly Polygon) {
 		}
 	}
 	distanceFactor = (lngMax - lngMin) * (latMax - latMin)
-	fmt.Println(distanceFactor)
 }
 
 func calculateScore(loc1, loc2 Loc) int {

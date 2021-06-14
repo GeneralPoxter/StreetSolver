@@ -181,7 +181,7 @@ async function getScore() {
 		]);
 	} else if (guessButton.innerHTML == 'Finish') {
 		resetUI('Restart', `Total score: ${data.totalScore} / 25000`);
-		status.innerHTML = `Game over \n High score: ${data.highScore}`;
+		status.innerHTML = `Game over \n\n High score: ${data.highScore}`;
 	} else {
 		resetUI('Guess', 'Loading street view...');
 		ready = false;

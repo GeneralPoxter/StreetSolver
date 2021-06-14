@@ -126,24 +126,26 @@ body {
 
 #regions {
 	font-family: "Trebuchet MS";
-	background-color: white;
 	font-family: "Trebuchet MS";
-	font-size: 15px;
+	font-size: 25px;
 	margin-right: 10px;
+	padding: 4px;
+	background-color: white;
+	color: black;
+	-webkit-border-radius: 0;
+	border: 0;
+	outline: 3px solid black;
+	outline-offset: -3px;
+}
+
+#regions:active, #regions:hover {
+	cursor: pointer;
+	background-color: black;
+	color: white;
 }
 
 #regions option {
 	position: absolute;
-}
-
-#regions option:hover {
-	color: white;
-	background-color: black;
-}
-
-#regionLabel {
-	position: relative;
-	font-family: "Trebuchet MS";
-	font-size: 25px;
+	background-color: white;
 	color: black;
 }

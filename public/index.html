@@ -4,14 +4,14 @@
 <head>
     <title>StreetSolver</title>
     <link rel="stylesheet" href="style.css" type="text/css">
-    <link href="img/favicon.png" rel="icon" type="image/png"/>
+    <link href="img/favicon.png" rel="icon" type="image/png" />
     <script defer type="text/javascript" src="main.js"></script>
 </head>
 
 <body>
     <div id="title">
         StreetSolver
-        <img src="img/favicon.png"/>
+        <img src="img/favicon.png" />
         <div id="status"></div>
     </div>
     <div id="maps">
@@ -24,27 +24,29 @@
         <button id="return">Return</button>
         <button id="instruct">Instructions</button>
         <button id="restart">Restart</button>
-        <label for="regions" id="regionLabel">Region:&nbsp;</label>
-        <select name = "regions" id = "regions">
+        <select name="regions" id="regions">
             <option value="Maryland">Maryland</option>
             <option value="United States">United States</option>
             <option value="World">World</option>
         </select>
     </div>
-    <div id = "instructions" class="modal">
+    <div id="instructions" class="modal">
         <div id="instructionsBox" class="modal-content">
             <span id="closer" class="close">&times;</span>
             <p>
-                For each round, use the Google StreetView interface to navigate the surroundings of the starting position.<br>
-                Select the play region with the "Region" dropdown menu followed by a game restart with the "Restart" button.<br>
+                For each round, use the Google StreetView interface to navigate the surroundings of the starting
+                position.<br>
+                Select the play region with the rightmost dropdown menu followed by a game restart with the "Restart"
+                button.<br>
                 Guess where the starting position is by clicking or dragging the marker on the world map.<br>
                 To return to the starting position, use the "Return" button, and to submit the guess, use "Guess".<br>
                 Each round is scored out of 5000 based on proximity, for a 5-round game totaling 25000 points.<br>
-                Game round progress is tracked even after the user quits the frontend, as long as the server itself remains running.
+                Game round progress is tracked even after the user quits the frontend, as long as the server itself
+                remains running.
             </p>
         </div>
     </div>
-    
+
 </body>
 
 </html>
