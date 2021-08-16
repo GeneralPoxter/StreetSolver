@@ -1,6 +1,9 @@
-# StreetSolver
+<h1 align="center">
+    <p>StreetSolver</p>
+    <img src="public/img/favicon.png" width="200"/>
+</h1>
 
-Geographic discovery game based off of GeoGuessr, but completely free. Made for Guided Research B: Future of Programming Languages.
+<p align="center">Geographic discovery game based off of GeoGuessr, but completely free.</p>
 
 ## Usage
 ### Setup
@@ -20,6 +23,7 @@ Select an option in the dropdown menu to restart the game in that play region (d
 Game round progress is tracked even after the user quits the frontend, as long as the server itself remains running.
 
 ## Developers
+Made for Guided Research B: Future of Programming Languages:
 * Natanel Ha
 * Jason Liu
 * Henry Ren
